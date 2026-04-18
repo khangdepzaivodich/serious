@@ -91,7 +91,7 @@ namespace ChatService.ChatAPI
         // CÁC API TEST NHANH (Dùng trên trình duyệt)
         // =======================================================
 
-        
+        /*
         // 1. Tạo Test 1 phiên + Gửi 1 tin nhắn (Gõ thẳng lên Browser)
         [HttpGet("tao-phien-test")]
         public async Task<IActionResult> TestTaoPhien()
@@ -111,7 +111,6 @@ namespace ChatService.ChatAPI
         }
 
         // --- TEST REDIS ---
-        /*
         // 2. Test tạo trạng thái 1 User đang Online
         [HttpGet("SetOnline/{userId}")]
         public async Task<IActionResult> SetUserOnline(string userId)
