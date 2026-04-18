@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 
 namespace IdentityService.Services.Identity.API.Data
 {
