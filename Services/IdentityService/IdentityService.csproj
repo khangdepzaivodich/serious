@@ -21,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Services\Identity.API\Role\" />
-    <Folder Include="Services\Identity.API\User\" />
+    <Folder Include="Identity.API\Role\" />
+    <Folder Include="Identity.API\User\" />
   </ItemGroup>
 
 </Project>
