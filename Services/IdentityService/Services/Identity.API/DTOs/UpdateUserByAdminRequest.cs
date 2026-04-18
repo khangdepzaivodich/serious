@@ -1,4 +1,4 @@
-﻿namespace backend.Services.Identity.API.DTOs
+﻿namespace IdentityService.Services.Identity.API.DTOs
 {
     public class UpdateUserByAdminRequest
     {

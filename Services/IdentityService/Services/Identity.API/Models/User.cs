@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace backend.Services.Identity.API.Models
+namespace IdentityService.Services.Identity.API.Models
 {
     public class User
     {

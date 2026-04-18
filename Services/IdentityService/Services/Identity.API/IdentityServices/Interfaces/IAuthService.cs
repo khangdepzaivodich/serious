@@ -1,5 +1,5 @@
-﻿using backend.Services.Identity.API.DTOs;
-namespace backend.Services.Identity.API.IdentityServices.Interfaces
+﻿using IdentityService.Services.Identity.API.DTOs;
+namespace IdentityService.Services.Identity.API.IdentityServices.Interfaces
 {
     public interface IAuthService
     {

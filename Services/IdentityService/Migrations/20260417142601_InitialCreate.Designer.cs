@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using backend.Services.Identity.API.Data;
+using IdentityService.Services.Identity.API.Data;
 
 #nullable disable
 
-namespace backend.Migrations
+namespace IdentityService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260417142601_InitialCreate")]

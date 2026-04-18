@@ -1,7 +1,7 @@
-﻿using backend.Services.Identity.API.Models;
+﻿using IdentityService.Services.Identity.API.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace backend.Services.Identity.API.Data
+namespace IdentityService.Services.Identity.API.Data
 {
     public class AppDbContext : DbContext
     {

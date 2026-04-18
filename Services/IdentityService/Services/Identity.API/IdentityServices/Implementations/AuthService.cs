@@ -1,8 +1,7 @@
-﻿using backend.Services.Identity.API.Configurations;
-using backend.Services.Identity.API.Data;
-using backend.Services.Identity.API.DTOs;
-using backend.Services.Identity.API.IdentityServices.Interfaces;
-using backend.Services.Identity.API.Models;
+﻿using IdentityService.Services.Identity.API.Data;
+using IdentityService.Services.Identity.API.DTOs;
+using IdentityService.Services.Identity.API.IdentityServices.Interfaces;
+using IdentityService.Services.Identity.API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,7 +9,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace backend.Services.Identity.API.Services.Implementations
+namespace IdentityService.Services.Identity.API.Services.Implementations
 {
     public class AuthService : IAuthService
     {

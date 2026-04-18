@@ -1,12 +1,12 @@
-﻿using backend.Services.Identity.API.Data;
-using backend.Services.Identity.API.DTOs;
-using backend.Services.Identity.API.IdentityServices.Interfaces;
-using backend.Services.Identity.API.Models;
+﻿using IdentityService.Services.Identity.API.Data;
+using IdentityService.Services.Identity.API.DTOs;
+using IdentityService.Services.Identity.API.IdentityServices.Interfaces;
+using IdentityService.Services.Identity.API.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace backend.Services.Identity.API.Services.Implementations
+namespace IdentityService.Services.Identity.API.Services.Implementations
 {
     public class UserService : IUserService
     {

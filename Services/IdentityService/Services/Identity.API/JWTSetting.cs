@@ -1,4 +1,4 @@
-﻿namespace backend.Services.Identity.API.Configurations
+﻿namespace IdentityService.Services.Identity.API
 {
     public class JwtSettings
     {

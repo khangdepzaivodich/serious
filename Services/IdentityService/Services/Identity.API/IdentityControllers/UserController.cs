@@ -1,13 +1,13 @@
-﻿using backend.Services.Identity.API.Data;
-using backend.Services.Identity.API.Models;
+﻿using IdentityService.Services.Identity.API.Data;
+using IdentityService.Services.Identity.API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using backend.Services.Identity.API.DTOs;
-namespace backend.Services.Identity.API.Controllers
+using IdentityService.Services.Identity.API.DTOs;
+namespace IdentityService.Services.Identity.API.IdentityControllers
 {
     [Route("api/[controller]")]
     [ApiController]

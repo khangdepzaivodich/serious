@@ -1,8 +1,8 @@
-﻿using backend.Services.Identity.API.DTOs;
-using backend.Services.Identity.API.IdentityServices.Interfaces;
+﻿using IdentityService.Services.Identity.API.DTOs;
+using IdentityService.Services.Identity.API.IdentityServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace backend.Services.Identity.API.IdentityControllers
+namespace IdentityService.Services.Identity.API.IdentityControllers
 {
     [Route("api/[controller]")]
     [ApiController]
