@@ -1,1 +1,5 @@
-<Solution />
+<Solution>
+  <Folder Name="/IdentityService/">
+    <Project Path="../backend/backend/IdentityService.csproj" />
+  </Folder>
+</Solution>
