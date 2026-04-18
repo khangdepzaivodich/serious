@@ -1,5 +1,3 @@
 <Solution>
-  <Folder Name="/IdentityService/">
-    <Project Path="../backend/backend/IdentityService.csproj" />
-  </Folder>
+  <Project Path="IdentityService/IdentityService.csproj" Id="e389f400-f342-4f31-a63e-d574575ad596" />
 </Solution>
