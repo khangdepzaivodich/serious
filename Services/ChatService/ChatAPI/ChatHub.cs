@@ -4,7 +4,6 @@ using ChatService.ChatAPI.Services;
 
 namespace ChatService.ChatAPI
 {
-    // Đây là "Ngã tư đường" để những ai xài WebSockets kết nối vào
     public class ChatHub : Hub
     {
         private readonly ChatMongoService _chatService;
