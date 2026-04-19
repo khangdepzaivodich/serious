@@ -1,3 +1,7 @@
+using DiscountService.Discount.API.Data;
+using DiscountService.Discount.API.DiscountServices.Implementations;
+using DiscountService.Discount.API.DiscountServices.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add CORS
@@ -12,8 +16,15 @@ builder.Services.AddCors(options =>
 });
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+// Configure MongoDB Database settings
+builder.Services.Configure<DiscountDbSettings>(
+    builder.Configuration.GetSection("DiscountDatabase"));
+
+// Register Discount Service
+builder.Services.AddSingleton<IMaGiamGiaService, MaGiamGiaService>();
 
 var app = builder.Build();
 
@@ -25,25 +36,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowFrontend");
 app.UseAuthorization();
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
