@@ -1,5 +1,6 @@
-﻿using IdentityService.Services.Identity.API.DTOs;
-namespace IdentityService.Services.Identity.API.IdentityServices.Interfaces
+﻿using IdentityService.Identity.API.DTOs;
+
+namespace IdentityService.Identity.API.IdentityServices.Interfaces
 {
     public interface IAuthService
     {

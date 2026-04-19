@@ -1,4 +1,4 @@
-﻿namespace IdentityService.Services.Identity.API.DTOs
+﻿namespace IdentityService.Identity.API.DTOs
 {
     public class RegisterRequest
     {

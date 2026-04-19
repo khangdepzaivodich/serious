@@ -1,7 +1,8 @@
-﻿using IdentityService.Services.Identity.API.Data;
-using IdentityService.Services.Identity.API.DTOs;
-using IdentityService.Services.Identity.API.IdentityServices.Interfaces;
-using IdentityService.Services.Identity.API.Models;
+﻿using IdentityService.Identity.API;
+using IdentityService.Identity.API.Data;
+using IdentityService.Identity.API.DTOs;
+using IdentityService.Identity.API.IdentityServices.Interfaces;
+using IdentityService.Identity.API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,7 +10,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace IdentityService.Services.Identity.API.Services.Implementations
+namespace IdentityService.Identity.API.IdentityServices.Implementations
 {
     public class AuthService : IAuthService
     {
@@ -100,9 +101,8 @@ namespace IdentityService.Services.Identity.API.Services.Implementations
 
         private static string HashPassword(string password)
         {
-            using var sha256 = SHA256.Create();
             var bytes = Encoding.UTF8.GetBytes(password);
-            var hash = sha256.ComputeHash(bytes);
+            var hash = SHA256.HashData(bytes);
             return Convert.ToBase64String(hash);
         }
     }

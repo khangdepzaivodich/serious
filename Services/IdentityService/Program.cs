@@ -1,5 +1,5 @@
-using IdentityService.Services.Identity.API;
-using IdentityService.Services.Identity.API.Data;
+using IdentityService.Identity.API;
+using IdentityService.Identity.API.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
