@@ -2,7 +2,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using ChatService.ChatAPI.Models;
 
-namespace ChatService.ChatAPI
+namespace ChatService.ChatAPI.Services
 {
     public class ChatMongoService
     {

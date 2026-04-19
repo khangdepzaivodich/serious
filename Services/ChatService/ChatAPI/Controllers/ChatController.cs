@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using ChatService.ChatAPI.Models;
+using ChatService.ChatAPI.Services;
+using ChatService.ChatAPI.DTOs;
 
-namespace ChatService.ChatAPI
+namespace ChatService.ChatAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -38,11 +40,11 @@ namespace ChatService.ChatAPI
 
         // [API CHÍNH THỨC] - Tạo 1 Phiên Chat Mới
         [HttpPost("create-session")]
-        public async Task<IActionResult> TaoPhien([FromBody] Guid userId)
+        public async Task<IActionResult> TaoPhien([FromBody] CreateSessionRequest request)
         {
             var phienMoi = new PhienTroChuyen
             {
-                UserID = userId,
+                UserID = request.UserId,
                 ThoiGianTao = DateTime.UtcNow,
                 TrangThai = "ACTIVE",
                 LastMessage = "Bắt đầu cuộc trò chuyện",
@@ -56,15 +58,18 @@ namespace ChatService.ChatAPI
 
         // [API CHÍNH THỨC] - Gửi 1 Tin Nhắn Mới vào Phiên
         [HttpPost("send-message")]
-        public async Task<IActionResult> GuiTinNhan([FromBody] HoiThoai tinNhanMoi)
+        public async Task<IActionResult> GuiTinNhan([FromBody] SendMessageRequest request)
         {
-            // Bổ sung các thông tin hệ thống trước khi lưu
-            tinNhanMoi.ThoiGianGui = DateTime.UtcNow;
-            tinNhanMoi.TrangThai = "sent";
-
-            // Nếu Client chưa tạo ID chống dội (duplicate) thì server tự tạo
-            if (tinNhanMoi.ClientID == Guid.Empty)
-                tinNhanMoi.ClientID = Guid.NewGuid();
+            var tinNhanMoi = new HoiThoai
+            {
+                MaPhien = request.MaPhien,
+                SenderID = request.SenderID,
+                SenderType = request.SenderType,
+                NoiDung = request.NoiDung,
+                ThoiGianGui = DateTime.UtcNow,
+                TrangThai = "sent",
+                ClientID = request.ClientID ?? Guid.NewGuid()
+            };
 
             await _chatService.GuiTinNhanAsync(tinNhanMoi);
 
@@ -73,9 +78,9 @@ namespace ChatService.ChatAPI
 
         // [API CHÍNH THỨC] - Online Ping
         [HttpPost("ping-online")]
-        public async Task<IActionResult> PingOnline([FromBody] Guid userId)
+        public async Task<IActionResult> PingOnline([FromBody] OnlinePingRequest request)
         {
-            await _redisService.SetUserOnlineAsync(userId.ToString());
+            await _redisService.SetUserOnlineAsync(request.UserId.ToString());
             return Ok(new { Note = "Đã cập nhật trạng thái Online (Chấm xanh) cho người dùng." });
         }
 

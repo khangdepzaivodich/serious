@@ -4,9 +4,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddSingleton<ChatService.ChatAPI.ChatMongoService>();
+builder.Services.AddSingleton<ChatService.ChatAPI.Services.ChatMongoService>();
 
-builder.Services.AddSingleton<ChatService.ChatAPI.ChatRedisService>();
+builder.Services.AddSingleton<ChatService.ChatAPI.Services.ChatRedisService>();
 
 builder.Services.AddControllers();
 
