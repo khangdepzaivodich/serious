@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using ChatService.ChatAPI.Models;
+using ChatService.ChatAPI.Services;
 
 namespace ChatService.ChatAPI
 {

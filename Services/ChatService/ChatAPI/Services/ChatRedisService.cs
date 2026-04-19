@@ -1,6 +1,6 @@
 using StackExchange.Redis;
 
-namespace ChatService.ChatAPI
+namespace ChatService.ChatAPI.Services
 {
     public class ChatRedisService
     {
