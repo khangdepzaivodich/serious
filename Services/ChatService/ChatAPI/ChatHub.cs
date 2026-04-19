@@ -13,20 +13,20 @@ namespace ChatService.ChatAPI
             _chatService = chatService;
         }
 
-        // 1. Khi 1 user bấm mở khung Chat lên (Tham gia vào Phòng/Phiên)
+        // User bấm mở khung Chat lên (Tham gia vào Phòng/Phiên)
         public async Task JoinChatSession(string maPhien)
         {
             // Nhét id kết nối (Context.ConnectionId) của user này vào 1 cái Group tên là {maPhien}
             await Groups.AddToGroupAsync(Context.ConnectionId, maPhien);
         }
 
-        // 2. Khi người dùng tắt khung Chat
+        // Khi người dùng tắt khung Chat
         public async Task LeaveChatSession(string maPhien)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, maPhien);
         }
 
-        // 3. Hàm Gửi Tin Nhắn xịn xò (Frontend gọi hàm này thay vì gọi cái HTTP POST trong ChatController)
+        // Hàm Gửi Tin Nhắn xịn xò (Frontend gọi hàm này thay vì gọi cái HTTP POST trong ChatController)
         public async Task SendMessage(HoiThoai tinNhan)
         {
             // A. Chuẩn bị dữ liệu hệ thống
