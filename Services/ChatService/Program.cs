@@ -10,6 +10,18 @@ builder.Services.AddSingleton<ChatService.ChatAPI.Services.ChatRedisService>();
 
 builder.Services.AddControllers();
 
+// [CORS] Cho phép Frontend Blazor gọi tới
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazor", policy =>
+    {
+        policy.SetIsOriginAllowed(origin => true) // Cho phép tất cả các cổng localhost
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // SignalR BẮT BUỘC phải có dòng này
+    });
+});
+
 // [TÍNH NĂNG MỚI] KÍCH HOẠT SignalR WebSockets! ---
 builder.Services.AddSignalR().AddStackExchangeRedis(builder.Configuration.GetConnectionString("Redis")!);
 
@@ -28,11 +40,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Middleware CORS
+app.UseCors("AllowBlazor");
+
 app.UseAuthorization();
 
 app.MapControllers();
 
-// [SignalR] Cắm cái đuôi cho trạm phát sóng (Đây là link mà Blazor Frontend sẽ gõ vào để connect WebSocket)
+// [SignalR]
 app.MapHub<ChatService.ChatAPI.ChatHub>("/chat-hub");
 
 app.Run();

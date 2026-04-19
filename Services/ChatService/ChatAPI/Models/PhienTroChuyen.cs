@@ -19,6 +19,10 @@ namespace ChatService.ChatAPI.Models
         // ACTIVE || CLOSED
         public string TrangThai { get; set; } = "ACTIVE";
 
+        public string StaffID { get; set; } = string.Empty; // Staff hỗ trợ phiên chat này
+
+        public string ClientType { get; set; } = "GUEST"; // GUEST hoặc USER
+
         public DateTime LastTime { get; set; } = DateTime.UtcNow;
 
         public string LastMessage { get; set; } = string.Empty;
