@@ -1,7 +1,7 @@
 ﻿using IdentityService.Identity.API.Data;
 using IdentityService.Identity.API.DTOs;
 using IdentityService.Identity.API.IdentityServices.Interfaces;
-using IdentityService.Services.Identity.API.Models;
+using IdentityService.Identity.API.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
