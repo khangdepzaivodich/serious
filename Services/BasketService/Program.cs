@@ -13,8 +13,22 @@ var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
     ConnectionMultiplexer.Connect(redisConnectionString));
 
-// Đăng ký BasketService
 builder.Services.AddScoped<IBasketService, BasketRedisService>();
+
+// Cấu hình Authentication Delegation
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<AuthenticationDelegatingHandler>();
+
+// Lấy Cấu hình hệ thống HTTP Client
+builder.Services.AddHttpClient<ICatalogService, CatalogApiService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:CatalogUrl"] ?? "http://localhost:5289");
+});
+
+builder.Services.AddHttpClient<IIdentityService, IdentityApiService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:IdentityUrl"] ?? "http://localhost:5018");
+}).AddHttpMessageHandler<AuthenticationDelegatingHandler>(); // Tự động chèn Bearer Token của User vào IdentityService
 
 var app = builder.Build();
 
