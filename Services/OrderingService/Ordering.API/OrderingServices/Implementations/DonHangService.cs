@@ -76,6 +76,28 @@ namespace OrderingService.Ordering.API.OrderingServices.Implementations
             return true;
         }
 
+        public async Task<PagedDonHangResult> GetAllDonHangsAsync(int page, int pageSize)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 20;
+
+            var query = _context.DonHangs.Include(d => d.ChiTietDonHangs).AsQueryable();
+            var total = await query.CountAsync();
+
+            var items = await query.OrderByDescending(d => d.NgayDat)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedDonHangResult
+            {
+                Items = items.Select(MapToDto),
+                TotalCount = total,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
         private static DonHangDto MapToDto(DonHang donHang)
         {
             return new DonHangDto

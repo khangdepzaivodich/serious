@@ -6,6 +6,7 @@ namespace CatalogService.CatalogControllers
 
     [Route("api/[controller]")]
     [ApiController]
+    // [Authorize(Roles = "Admin")] // Enable this to restrict category management to Admins
     public class DanhMucController : ControllerBase
     {
         private readonly IDanhMucService _service;

@@ -39,6 +39,14 @@ namespace OrderingService.Ordering.API.OrderingControllers
             return Ok(donHangs);
         }
 
+        [HttpGet]
+        // [Authorize(Roles = "Staff")]
+        public async Task<IActionResult> GetAll(int page = 1, int pageSize = 20)
+        {
+            var result = await _donHangService.GetAllDonHangsAsync(page, pageSize);
+            return Ok(result);
+        }
+
         [HttpPatch("{maDH}/status")]
         public async Task<IActionResult> UpdateDonHangStatus(Guid maDH, [FromBody] string newStatus)
         {
