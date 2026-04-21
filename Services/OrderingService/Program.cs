@@ -24,6 +24,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Register HttpClients for Inter-Service calls
+builder.Services.AddHttpClient("DiscountAPI", client => 
+    client.BaseAddress = new Uri("https://localhost:7002/"));
+
 // Register Services
 builder.Services.AddScoped<IDonHangService, DonHangService>();
 

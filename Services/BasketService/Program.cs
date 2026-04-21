@@ -1,8 +1,18 @@
+using BasketService.BasketAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using StackExchange.Redis;
-using BasketService.BasketAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("https://localhost:7119", "http://localhost:5270")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -10,7 +20,7 @@ builder.Services.AddOpenApi();
 
 // Cấu hình Redis từ appsettings
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379,ssl=False,abortConnect=False";
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     ConnectionMultiplexer.Connect(redisConnectionString));
 
 builder.Services.AddScoped<IBasketService, BasketRedisService>();
@@ -28,7 +38,7 @@ builder.Services.AddHttpClient<ICatalogService, CatalogApiService>(client =>
 builder.Services.AddHttpClient<IIdentityService, IdentityApiService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiSettings:IdentityUrl"] ?? "http://localhost:5018");
-}).AddHttpMessageHandler<AuthenticationDelegatingHandler>(); // Tự động chèn Bearer Token của User vào IdentityService
+}).AddHttpMessageHandler<AuthenticationDelegatingHandler>();
 
 var app = builder.Build();
 
@@ -39,6 +49,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
 
