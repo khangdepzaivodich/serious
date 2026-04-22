@@ -27,6 +27,8 @@ namespace ChatService.ChatAPI.Models
 
         public string LastMessage { get; set; } = string.Empty;
 
+        public string HoTen { get; set; } = string.Empty; // Tên khách hàng (rỗng nếu GUEST)
+
         public int UnreadCount { get; set; } = 0;
     }
 }

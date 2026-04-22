@@ -9,17 +9,12 @@ using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
-builder.Services.AddSingleton(jwtSettings);
-// Add services to the container.
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
 // =====================
 // Controllers
 // =====================
 builder.Services.AddControllers();
+
 // =====================
 // CORS
 // =====================
@@ -32,6 +27,7 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
 // =====================
 // DbContext
 // =====================
@@ -39,39 +35,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
     //options.UseInMemoryDatabase("IdentitySVDb_Memory")); // chạy db trên ram ko cần cài sql để test api
 
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
-
-var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();
-    //dbContext.Database.EnsureCreated();
-}
-
-// Configure the HTTP request pipeline.
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-    )
-);
-
 // =====================
-// JWT Settings (OPTIONS pattern)
+// JWT Settings
 // =====================
-builder.Services.Configure<JwtSettings>(
-    builder.Configuration.GetSection("JwtSettings"));
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
+builder.Services.AddSingleton(jwtSettings);
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
 // =====================
 // DI Services
@@ -84,18 +53,6 @@ builder.Services.AddScoped<IUserService, UserService>();
 // =====================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// =====================
-// Build temporary config for JWT validation
-// =====================
-var jwtSettings = builder.Configuration
-    .GetSection("JwtSettings")
-    .Get<JwtSettings>();
-
-if (jwtSettings == null || string.IsNullOrEmpty(jwtSettings.Secret))
-{
-    throw new Exception("JwtSettings is missing or invalid");
-}
 
 // =====================
 // Authentication
@@ -126,7 +83,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // =====================
 builder.Services.AddAuthorization();
 
+// =====================
+// Build
+// =====================
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+    //dbContext.Database.EnsureCreated();
+}
 
 // =====================
 // Middleware

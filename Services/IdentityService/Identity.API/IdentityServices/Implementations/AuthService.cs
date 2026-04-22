@@ -1,4 +1,4 @@
-﻿using IdentityService.Identity.API.Data;
+using IdentityService.Identity.API.Data;
 using IdentityService.Identity.API.DTOs;
 using IdentityService.Identity.API.IdentityServices.Interfaces;
 using IdentityService.Identity.API.Models;
@@ -67,7 +67,8 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
                 token,
                 userId = user.MaTK,
                 email = user.Email,
-                role = user.VaiTro
+                role = user.VaiTro,
+                hoTen = user.HoTen
             };
 
             return (true, "Login success", data);
@@ -80,6 +81,7 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
             {
                 new Claim(ClaimTypes.NameIdentifier, user.MaTK.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Name, user.HoTen ?? ""),
                 new Claim(ClaimTypes.Role, user.VaiTro ?? "User")
             };
 

@@ -41,6 +41,41 @@ namespace ChatService.ChatAPI.Services
             await _phienCollection.UpdateOneAsync(p => p.Id == idPhien, update);
         }
 
+        // Reset unread count khi Staff đã đọc
+        public async Task ResetUnreadAsync(Guid idPhien)
+        {
+            var update = Builders<PhienTroChuyen>.Update.Set(p => p.UnreadCount, 0);
+            await _phienCollection.UpdateOneAsync(p => p.Id == idPhien, update);
+        }
+
+        // Cập nhật trạng thái phiên (ACTIVE / CLOSED)
+        public async Task CapNhatTrangThaiPhienAsync(Guid idPhien, string trangThai)
+        {
+            var update = Builders<PhienTroChuyen>.Update
+                .Set(p => p.TrangThai, trangThai)
+                .Set(p => p.LastTime, DateTime.UtcNow);
+
+            await _phienCollection.UpdateOneAsync(p => p.Id == idPhien, update);
+        }
+
+        // Nâng cấp phiên từ GUEST → USER (khi khách login)
+        public async Task UpgradePhienAsync(Guid idPhien, Guid userId, string hoTen)
+        {
+            var update = Builders<PhienTroChuyen>.Update
+                .Set(p => p.ClientType, "USER")
+                .Set(p => p.UserID, userId)
+                .Set(p => p.HoTen, hoTen)
+                .Set(p => p.LastTime, DateTime.UtcNow);
+
+            await _phienCollection.UpdateOneAsync(p => p.Id == idPhien, update);
+        }
+
+        // Lấy 1 phiên theo ID
+        public async Task<PhienTroChuyen?> GetPhienByIdAsync(Guid idPhien)
+        {
+            return await _phienCollection.Find(p => p.Id == idPhien).FirstOrDefaultAsync();
+        }
+
 
         // --- HỘI THOẠI (TIN NHẮN) ---
 
