@@ -15,5 +15,7 @@ namespace IdentityService.Identity.API.IdentityServices.Interfaces
         Task<bool> Delete(Guid id);
         Task<bool> Lock(Guid id);
         Task<bool> Unlock(Guid id);
+        Task<bool> UserExistsByEmail(string email);
+        Task<bool> UserExistsById(Guid userId);
     }
 }
