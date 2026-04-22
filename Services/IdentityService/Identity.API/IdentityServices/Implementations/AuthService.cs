@@ -1,9 +1,9 @@
-﻿using IdentityService.Identity.API;
-using IdentityService.Identity.API.Data;
+﻿using IdentityService.Identity.API.Data;
 using IdentityService.Identity.API.DTOs;
 using IdentityService.Identity.API.IdentityServices.Interfaces;
 using IdentityService.Identity.API.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -17,10 +17,11 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
         private readonly AppDbContext _context;
         private readonly JwtSettings _jwt;
 
-        public AuthService(AppDbContext context, JwtSettings jwt)
+        public AuthService(AppDbContext context, IOptions<JwtSettings> jwtOptions)
         {
             _context = context;
-            _jwt = jwt;
+            _jwt = jwtOptions.Value;
+            Console.WriteLine("JWT Secret" + _jwt.Secret);
         }
 
         public async Task<(bool Success, string Message)> Register(RegisterRequest request)

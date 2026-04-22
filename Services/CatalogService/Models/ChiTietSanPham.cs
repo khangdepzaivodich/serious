@@ -17,7 +17,7 @@ namespace CatalogService.Models
         public required string KichCo { get; set; } // Size
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal Gia { get; set; } // Price
+        public decimal Gia { get; set; } // Priceg
 
         public int SoLuong { get; set; } // Quantity
 

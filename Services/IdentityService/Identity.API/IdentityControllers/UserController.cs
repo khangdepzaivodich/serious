@@ -9,6 +9,7 @@ namespace IdentityService.Identity.API.IdentityControllers
     [Route("api/[controller]")]
     [ApiController]
     //[Authorize]
+    //[Authorize] debug
     public class UserController : ControllerBase
     {
         private readonly IUserService _service;
@@ -107,6 +108,29 @@ namespace IdentityService.Identity.API.IdentityControllers
             var ok = await _service.Unlock(id);
             if (!ok) return NotFound();
             return Ok("Unlocked");
+        }
+        [HttpPost("exists")]
+        public async Task<IActionResult> CheckUserExists([FromBody] CheckUserExistsRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Email))
+                return BadRequest("Email is required");
+
+            var exists = await _service.UserExistsByEmail(request.Email);
+
+            return Ok(new CheckUserExistsResponse
+            {
+                Exists = exists
+            });
+        }
+        [HttpGet("exists/{id}")]
+        public async Task<IActionResult> CheckUserExistsById(Guid id)
+        {
+            var exists = await _service.UserExistsById(id);
+
+            return Ok(new CheckUserExistsResponse
+            {
+                Exists = exists
+            });
         }
     }
 }
