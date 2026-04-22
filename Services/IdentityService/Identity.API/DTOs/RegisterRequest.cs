@@ -7,6 +7,6 @@
         public required string SoDienThoai { get; set; }
         public required string HoTen { get; set; }
         public required string DiaChi { get; set; }
-        public DateTime NgayThangNamSinh { get; set; }
+        public DateTime NgayThangNamSinh { get; set; } = DateTime.Now;
     }
 }
