@@ -10,6 +10,7 @@ namespace OrderingService.Ordering.API.OrderingServices.Interfaces
         Task<DonHangDto> CreateDonHangAsync(CreateDonHangRequest request);
         Task<DonHangDto?> GetDonHangByIdAsync(Guid maDH);
         Task<IEnumerable<DonHangDto>> GetDonHangsByUserIdAsync(Guid maTK);
+        Task<PagedDonHangResult> GetAllDonHangsAsync(int page, int pageSize);
         Task<bool> UpdateDonHangStatusAsync(Guid maDH, string newStatus);
     }
 }

@@ -20,10 +20,11 @@ namespace IdentityService.Identity.API.IdentityControllers
         {
             var result = await _authService.Register(request);
 
-            if (!result.Success)
-                return BadRequest(result.Message);
-
-            return Ok(result.Message);
+            return StatusCode(result.Success ? 200 : 400, new
+            {
+                success = result.Success,
+                message = result.Message
+            });
         }
 
         [HttpPost("login")]

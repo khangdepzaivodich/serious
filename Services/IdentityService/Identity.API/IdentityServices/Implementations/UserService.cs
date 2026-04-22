@@ -2,6 +2,7 @@
 using IdentityService.Identity.API.DTOs;
 using IdentityService.Identity.API.IdentityServices.Interfaces;
 using IdentityService.Identity.API.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
@@ -184,6 +185,16 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
             user.TrangThai = "Active";
             await _context.SaveChangesAsync();
             return true;
+        }
+        public async Task<bool> UserExistsByEmail(string email)
+        {
+            return await _context.Users
+                .AnyAsync(x => x.Email == email);
+        }
+        public async Task<bool> UserExistsById(Guid userId)
+        {
+            return await _context.Users
+                .AnyAsync(x => x.MaTK == userId);
         }
     }
 }
