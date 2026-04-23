@@ -1,8 +1,13 @@
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Options;
+using MongoDB.Bson.Serialization.Serializers;
 using DiscountService.Discount.API.Data;
 using DiscountService.Discount.API.DiscountServices.Implementations;
 using DiscountService.Discount.API.DiscountServices.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
+
+BsonSerializer.RegisterSerializer(new GuidSerializer(MongoDB.Bson.GuidRepresentation.Standard));
 
 // Add CORS
 

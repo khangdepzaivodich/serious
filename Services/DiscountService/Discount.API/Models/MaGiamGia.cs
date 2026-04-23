@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -30,5 +31,27 @@ namespace DiscountService.Discount.API.Models
 
         [BsonElement("hanSuDung")]
         public DateTime HanSuDung { get; set; }
+
+        [BsonElement("apDungCho")]
+        public string ApDungCho { get; set; } = "TatCa";
+
+        [BsonElement("maLDM")]
+        [BsonIgnoreIfNull]
+        [BsonRepresentation(BsonType.String)]
+        public Guid? MaLDM { get; set; }
+
+        [BsonElement("maDM")]
+        [BsonIgnoreIfNull]
+        [BsonRepresentation(BsonType.String)]
+        public Guid? MaDM { get; set; }
+
+        [BsonElement("maSP")]
+        [BsonIgnoreIfNull]
+        [BsonRepresentation(BsonType.String)]
+        public Guid? MaSP { get; set; }
+
+        [BsonElement("maSPs")]
+        [BsonIgnoreIfNull]
+        public List<Guid> MaSPs { get; set; } = new();
     }
 }
