@@ -1,4 +1,4 @@
-﻿using CatalogService.CatalogServices.Interfaces;
+using CatalogService.CatalogServices.Interfaces;
 using CatalogService.Data;
 using Microsoft.EntityFrameworkCore;
 using CatalogService.DTOs;
@@ -40,6 +40,15 @@ namespace CatalogService.CatalogServices.Implementations
             if (!string.IsNullOrWhiteSpace(paginationDto.Keyword))
             {
                 query = query.Where(sp => sp.TenSP.Contains(paginationDto.Keyword));
+            }
+
+            // FILTER: Price
+            if (paginationDto.MinPrice.HasValue || paginationDto.MaxPrice.HasValue)
+            {
+                query = query.Where(sp => sp.ChiTietSanPhams.Any(ct => 
+                    (!paginationDto.MinPrice.HasValue || ct.Gia >= paginationDto.MinPrice.Value) &&
+                    (!paginationDto.MaxPrice.HasValue || ct.Gia <= paginationDto.MaxPrice.Value)
+                ));
             }
 
             var totalCount = await query.CountAsync();
