@@ -1,38 +1,43 @@
 services:
-
   # =========================
-  # SQL SERVER 
+  # SQL SERVER
   # =========================
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sqlserver
     environment:
-      SA_PASSWORD: "123456"
+      SA_PASSWORD: "YourStrong@123"
       ACCEPT_EULA: "Y"
     ports:
       - "1433:1433"
     volumes:
       - sql_data:/var/opt/mssql
+    networks:
+      - backend
 
   # =========================
-  # MONGO DB (shared cluster style)
+  # MONGODB
   # =========================
   mongodb:
-    image: mongo
+    image: mongo:7
     container_name: mongodb
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - backend
 
   # =========================
-  # REDIS (Basket service storage)
+  # REDIS
   # =========================
   redis:
     image: redis:7
     container_name: redis
     ports:
       - "6379:6379"
+    networks:
+      - backend
 
   # =========================
   # IDENTITY SERVICE
@@ -41,12 +46,12 @@ services:
     build:
       context: ./Services/IdentityService
     ports:
-      - "7093:80"
+      - "7093:8080"
     depends_on:
       - sqlserver
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Default=Server=sqlserver;Database=IdentityDb;User Id=sa;Password=123456;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=IdentityDb;User Id=sa;Password=YourStrong@123;TrustServerCertificate=True;ConnectRetryCount=5;ConnectRetryInterval=10;
     networks:
       - backend
 
@@ -57,12 +62,12 @@ services:
     build:
       context: ./Services/CatalogService
     ports:
-      - "7103:80"
+      - "7103:8080"
     depends_on:
       - sqlserver
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Default=Server=sqlserver;Database=CatalogDb;User Id=sa;Password=123456;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=CatalogDb;User Id=sa;Password=YourStrong@123;TrustServerCertificate=True;ConnectRetryCount=5;ConnectRetryInterval=10;
     networks:
       - backend
 
@@ -73,39 +78,39 @@ services:
     build:
       context: ./Services/OrderingService
     ports:
-      - "7076:80"
+      - "7076:8080"
     depends_on:
       - sqlserver
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Default=Server=sqlserver;Database=OrderingDb;User Id=sa;Password=Your_password123;
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=OrderingDb;User Id=sa;Password=YourStrong@123;TrustServerCertificate=True;ConnectRetryCount=5;ConnectRetryInterval=10;
     networks:
       - backend
 
   # =========================
-  # BASKET SERVICE (Redis)
+  # BASKET SERVICE (REDIS)
   # =========================
   basket-service:
     build:
       context: ./Services/BasketService
     ports:
-      - "7021:80"
+      - "7021:8080"
     depends_on:
       - redis
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - Redis__ConnectionString=redis:6379
+      - Redis__ConnectionString=redis:6379,abortConnect=false
     networks:
       - backend
 
   # =========================
-  # DISCOUNT SERVICE (MongoDB)
+  # DISCOUNT SERVICE (MONGO)
   # =========================
   discount-service:
     build:
       context: ./Services/DiscountService
     ports:
-      - "7002:80"
+      - "7002:8080"
     depends_on:
       - mongodb
     environment:
@@ -116,19 +121,20 @@ services:
       - backend
 
   # =========================
-  # CHAT SERVICE (MongoDB)
+  # CHAT SERVICE (MONGO)
   # =========================
   chat-service:
     build:
       context: ./Services/ChatService
     ports:
-      - "7229:80"
+      - "7229:8080"
     depends_on:
       - mongodb
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - Mongo__ConnectionString=mongodb://mongodb:27017
       - Mongo__Database=ChatDb
+      - Redis__ConnectionString=redis:6379,abortConnect=false
     networks:
       - backend
 
