@@ -32,7 +32,18 @@ namespace CatalogService.CatalogControllers
                 Data = data
             });
         }
+        // GET: api/sanpham/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            var sanPham = await _service.GetSanPhamByIdAsync(id);
+            if (sanPham == null)
+                return NotFound();
 
+            return Ok(sanPham);
+        }
+
+        // POST: api/sanpham
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] SanPhamCreateDTO dto)
         {
