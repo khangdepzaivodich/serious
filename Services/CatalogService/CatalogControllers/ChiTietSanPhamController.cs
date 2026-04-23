@@ -20,6 +20,10 @@ namespace CatalogService.CatalogControllers
         public async Task<IActionResult> GetBySanPham(Guid maSP)
             => Ok(await _service.GetBySanPhamIdAsync(maSP));
 
+        [HttpGet("/api/sanpham/{maSP}/variants")]
+        public async Task<IActionResult> GetBySanPhamLegacy(Guid maSP)
+            => Ok(await _service.GetBySanPhamIdAsync(maSP));
+
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(Guid id)
         {
@@ -27,8 +31,24 @@ namespace CatalogService.CatalogControllers
             return result == null ? NotFound() : Ok(result);
         }
 
+        [HttpGet("/api/sanpham/variants/{id}")]
+        public async Task<IActionResult> GetLegacy(Guid id)
+        {
+            var result = await _service.GetByIdAsync(id);
+            return result == null ? NotFound() : Ok(result);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ChiTietSanPhamCreateUpdateDTO dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var result = await _service.CreateAsync(dto);
+            return CreatedAtAction(nameof(Get), new { id = result.MaCTSP }, result);
+        }
+
+        [HttpPost("/api/sanpham/variants")]
+        public async Task<IActionResult> CreateLegacy([FromBody] ChiTietSanPhamCreateUpdateDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -46,12 +66,26 @@ namespace CatalogService.CatalogControllers
                 : NotFound();
         }
 
+        [HttpPut("/api/sanpham/variants/{id}")]
+        public async Task<IActionResult> UpdateLegacy(Guid id, [FromBody] ChiTietSanPhamCreateUpdateDTO dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            return await _service.UpdateAsync(id, dto)
+                ? NoContent()
+                : NotFound();
+        }
+
         [HttpPatch("{id}/stock")]
         public async Task<IActionResult> UpdateStock(Guid id, [FromQuery] int change)
             => await _service.UpdateStockAsync(id, change) ? NoContent() : NotFound();
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
+            => await _service.DeleteAsync(id) ? NoContent() : NotFound();
+
+        [HttpDelete("/api/sanpham/variants/{id}")]
+        public async Task<IActionResult> DeleteLegacy(Guid id)
             => await _service.DeleteAsync(id) ? NoContent() : NotFound();
     }
 }

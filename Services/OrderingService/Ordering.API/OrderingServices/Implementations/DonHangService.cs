@@ -39,7 +39,8 @@ namespace OrderingService.Ordering.API.OrderingServices.Implementations
                     Mau_LuuTru = x.Mau_LuuTru,
                     KichCo_LuuTru = x.KichCo_LuuTru,
                     SoLuong = x.SoLuong,
-                    Gia_LuuTru = x.Gia_LuuTru
+                    Gia_LuuTru = x.Gia_LuuTru,
+                    Anh_LuuTru = x.Anh_LuuTru
                 }).ToList()
             };
 
@@ -124,7 +125,8 @@ namespace OrderingService.Ordering.API.OrderingServices.Implementations
                     Mau_LuuTru = c.Mau_LuuTru,
                     KichCo_LuuTru = c.KichCo_LuuTru,
                     SoLuong = c.SoLuong,
-                    Gia_LuuTru = c.Gia_LuuTru
+                    Gia_LuuTru = c.Gia_LuuTru,
+                    Anh_LuuTru = c.Anh_LuuTru
                 }).ToList()
             };
         }

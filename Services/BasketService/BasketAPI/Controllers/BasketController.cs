@@ -46,6 +46,7 @@ public class BasketController : ControllerBase
             {
                 item.Price = product.Price;
                 item.ProductName = product.Name;
+                item.ImageUrl = product.ImageUrl;
             }
         }
 

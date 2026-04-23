@@ -36,5 +36,6 @@ namespace OrderingService.Ordering.API.DTOs
         public string? KichCo_LuuTru { get; set; }
         public decimal Gia_LuuTru { get; set; }
         public int SoLuong { get; set; }
+        public string? Anh_LuuTru { get; set; }
     }
 }

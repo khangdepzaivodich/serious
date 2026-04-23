@@ -28,6 +28,8 @@ namespace OrderingService.Ordering.API.Models
         [Required]
         public int SoLuong { get; set; }
 
+        public string? Anh_LuuTru { get; set; }
+
         [ForeignKey("MaDH")]
         public DonHang DonHang { get; set; } = null!;
     }
