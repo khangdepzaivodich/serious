@@ -68,11 +68,21 @@ namespace OrderingService.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<string>("HoTen")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
                     b.Property<Guid?>("MaGG")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("MaTK")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SoDienThoai")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<DateTime>("NgayDat")
                         .HasColumnType("datetime2");

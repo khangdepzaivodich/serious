@@ -5,18 +5,17 @@ using OrderingService.Ordering.API.OrderingServices.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add CORS
+// Add services to the container.
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
         policy.WithOrigins("https://localhost:7119", "http://localhost:5270")
+              .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowCredentials();
     });
 });
-
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
@@ -29,6 +28,12 @@ builder.Services.AddScoped<IDonHangService, DonHangService>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -36,10 +41,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseCors("AllowFrontend");
+app.UseCors("AllowAll");
 app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
 

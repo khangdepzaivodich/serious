@@ -13,20 +13,17 @@ var builder = WebApplication.CreateBuilder(args);
 // =====================
 // Controllers
 // =====================
-builder.Services.AddControllers();
-
-// =====================
-// CORS
-// =====================
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("https://localhost:7119", "http://localhost:5270")
+              .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowCredentials();
     });
 });
+builder.Services.AddControllers();
 
 // =====================
 // DbContext
@@ -105,8 +102,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseRouting();
 app.UseCors("AllowAll");
+app.UseRouting();
+
 app.UseAuthorization();
 
 app.MapControllers();

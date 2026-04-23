@@ -21,9 +21,14 @@ namespace OrderingService.Ordering.API.OrderingServices.Implementations
 
         public async Task<DonHangDto> CreateDonHangAsync(CreateDonHangRequest request)
         {
+            if (request.ChiTietDonHangs == null || request.ChiTietDonHangs.Count == 0)
+                throw new ArgumentException("At least one order item is required.", nameof(request));
+
             var donHang = new DonHang
             {
                 MaTK = request.MaTK,
+                HoTen = request.HoTen,
+                SoDienThoai = request.SoDienThoai,
                 MaGG = request.MaGG,
                 DiaChiGiaoHang = request.DiaChiGiaoHang,
                 TongTien = request.ChiTietDonHangs.Sum(x => x.SoLuong * x.Gia_LuuTru),
@@ -104,6 +109,8 @@ namespace OrderingService.Ordering.API.OrderingServices.Implementations
             {
                 MaDH = donHang.MaDH,
                 MaTK = donHang.MaTK,
+                HoTen = donHang.HoTen,
+                SoDienThoai = donHang.SoDienThoai,
                 MaGG = donHang.MaGG,
                 NgayDat = donHang.NgayDat,
                 TongTien = donHang.TongTien,
