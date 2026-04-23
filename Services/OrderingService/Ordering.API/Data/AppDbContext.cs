@@ -19,6 +19,22 @@ namespace OrderingService.Ordering.API.Data
                 .HasOne(c => c.DonHang)
                 .WithMany(d => d.ChiTietDonHangs)
                 .HasForeignKey(c => c.MaDH);
+
+            modelBuilder.Entity<ChiTietDonHang>()
+                .Property(c => c.Gia_LuuTru)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<DonHang>()
+                .Property(d => d.TongTien)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<DonHang>()
+                .Property(d => d.HoTen)
+                .HasMaxLength(150);
+
+            modelBuilder.Entity<DonHang>()
+                .Property(d => d.SoDienThoai)
+                .HasMaxLength(20);
         }
     }
 }

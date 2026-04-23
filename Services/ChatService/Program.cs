@@ -8,19 +8,17 @@ builder.Services.AddSingleton<ChatService.ChatAPI.Services.ChatMongoService>();
 
 builder.Services.AddSingleton<ChatService.ChatAPI.Services.ChatRedisService>();
 
-builder.Services.AddControllers();
-
-// [CORS] Cho phép Frontend Blazor gọi tới
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowBlazor", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.SetIsOriginAllowed(origin => true) // Cho phép tất cả các cổng localhost
-              .AllowAnyHeader()
+        policy.WithOrigins("https://localhost:7119", "http://localhost:5270")
               .AllowAnyMethod()
-              .AllowCredentials(); // SignalR BẮT BUỘC phải có dòng này
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
+builder.Services.AddControllers();
 
 // [TÍNH NĂNG MỚI] KÍCH HOẠT SignalR WebSockets! ---
 builder.Services.AddSignalR().AddStackExchangeRedis(builder.Configuration.GetConnectionString("Redis")!);
@@ -39,10 +37,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// Middleware CORS
-app.UseCors("AllowBlazor");
-
+app.UseCors("AllowAll");
 app.UseAuthorization();
 
 app.MapControllers();
@@ -51,3 +46,4 @@ app.MapControllers();
 app.MapHub<ChatService.ChatAPI.ChatHub>("/chat-hub");
 
 app.Run();
+

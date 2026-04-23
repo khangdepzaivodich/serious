@@ -12,6 +12,14 @@ namespace OrderingService.Ordering.API.Models
         [Required]
         public Guid MaTK { get; set; }
 
+        [Required]
+        [MaxLength(150)]
+        public string HoTen { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(20)]
+        public string SoDienThoai { get; set; } = string.Empty;
+
         public Guid? MaGG { get; set; }
 
         public DateTime NgayDat { get; set; } = DateTime.UtcNow;

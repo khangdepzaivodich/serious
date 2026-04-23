@@ -29,7 +29,11 @@ public class BasketRedisService : IBasketService
     public async Task<ShoppingCart?> UpdateBasketAsync(ShoppingCart basket)
     {
         var basketJson = JsonSerializer.Serialize(basket);
-        await _database.StringSetAsync(basket.UserName, basketJson, TimeSpan.FromDays(7)); // Giỏ hàng lưu trữ 7 ngày
+        var ttl = string.Equals(basket.UserName, "guest", StringComparison.OrdinalIgnoreCase)
+            ? TimeSpan.FromDays(1)
+            : TimeSpan.FromDays(7);
+
+        await _database.StringSetAsync(basket.UserName, basketJson, ttl);
         return await GetBasketAsync(basket.UserName);
     }
 
