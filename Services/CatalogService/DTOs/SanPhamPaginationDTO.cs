@@ -1,4 +1,4 @@
-﻿namespace CatalogService.DTOs
+namespace CatalogService.DTOs
 {
     public class SanPhamPaginationDTO
     {
@@ -7,5 +7,7 @@
         public Guid? MaDM { get; set; } 
         public Guid? MaLDM { get; set; }
         public string? Keyword { get; set; }
+        public decimal? MinPrice { get; set; }
+        public decimal? MaxPrice { get; set; }
     }
 }
