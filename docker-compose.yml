@@ -1,0 +1,146 @@
+services:
+
+  # =========================
+  # SQL SERVER 
+  # =========================
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "123456"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+
+  # =========================
+  # MONGO DB (shared cluster style)
+  # =========================
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # =========================
+  # REDIS (Basket service storage)
+  # =========================
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  # =========================
+  # IDENTITY SERVICE
+  # =========================
+  identity-service:
+    build:
+      context: ./Services/IdentityService
+    ports:
+      - "7093:80"
+    depends_on:
+      - sqlserver
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Default=Server=sqlserver;Database=IdentityDb;User Id=sa;Password=123456;
+    networks:
+      - backend
+
+  # =========================
+  # CATALOG SERVICE
+  # =========================
+  catalog-service:
+    build:
+      context: ./Services/CatalogService
+    ports:
+      - "7103:80"
+    depends_on:
+      - sqlserver
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Default=Server=sqlserver;Database=CatalogDb;User Id=sa;Password=123456;
+    networks:
+      - backend
+
+  # =========================
+  # ORDERING SERVICE
+  # =========================
+  ordering-service:
+    build:
+      context: ./Services/OrderingService
+    ports:
+      - "7076:80"
+    depends_on:
+      - sqlserver
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Default=Server=sqlserver;Database=OrderingDb;User Id=sa;Password=Your_password123;
+    networks:
+      - backend
+
+  # =========================
+  # BASKET SERVICE (Redis)
+  # =========================
+  basket-service:
+    build:
+      context: ./Services/BasketService
+    ports:
+      - "7021:80"
+    depends_on:
+      - redis
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Redis__ConnectionString=redis:6379
+    networks:
+      - backend
+
+  # =========================
+  # DISCOUNT SERVICE (MongoDB)
+  # =========================
+  discount-service:
+    build:
+      context: ./Services/DiscountService
+    ports:
+      - "7002:80"
+    depends_on:
+      - mongodb
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Mongo__ConnectionString=mongodb://mongodb:27017
+      - Mongo__Database=DiscountDb
+    networks:
+      - backend
+
+  # =========================
+  # CHAT SERVICE (MongoDB)
+  # =========================
+  chat-service:
+    build:
+      context: ./Services/ChatService
+    ports:
+      - "7229:80"
+    depends_on:
+      - mongodb
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Mongo__ConnectionString=mongodb://mongodb:27017
+      - Mongo__Database=ChatDb
+    networks:
+      - backend
+
+# =========================
+# NETWORK
+# =========================
+networks:
+  backend:
+
+# =========================
+# VOLUMES
+# =========================
+volumes:
+  sql_data:
+  mongo_data:
