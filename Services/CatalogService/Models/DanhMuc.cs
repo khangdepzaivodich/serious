@@ -17,7 +17,7 @@ namespace CatalogService.Models
         public required string TenDM { get; set; }
 
         [ForeignKey("MaLDM")]
-        public virtual LoaiDanhMuc LoaiDanhMuc { get; set; } = null!;
+        public virtual LoaiDanhMuc? LoaiDanhMuc { get; set; } 
 
         public virtual ICollection<SanPham> SanPhams { get; set; }
 

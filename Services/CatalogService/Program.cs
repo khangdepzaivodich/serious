@@ -38,7 +38,10 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
-    //dbContext.Database.EnsureCreated();
+
+    // Pass the correct file path: content root is the project folder for CatalogService
+    var jsonPath = Path.Combine(builder.Environment.ContentRootPath, "Data", "data.json");
+    await Seeder.SeedAsync(dbContext, jsonPath);
 }
 
 if (app.Environment.IsDevelopment())
