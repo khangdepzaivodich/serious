@@ -1,6 +1,6 @@
+using Microsoft.AspNetCore.Mvc;
 using CatalogService.CatalogServices.Interfaces;
 using CatalogService.DTOs;
-using Microsoft.AspNetCore.Mvc;
 
 namespace CatalogService.CatalogControllers
 {
@@ -16,37 +16,57 @@ namespace CatalogService.CatalogControllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
-            => Ok(await _service.GetAllSanPhamsAsync());
-
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> Get(Guid id)
+        public async Task<IActionResult> GetPaged([FromQuery] SanPhamPaginationDTO paginationDto)
         {
-            var result = await _service.GetSanPhamByIdAsync(id);
-            return result == null ? NotFound() : Ok(result);
+            if (paginationDto.PageNumber <= 0 || paginationDto.PageSize <= 0)
+                return BadRequest("pageNumber and pageSize must be > 0");
+
+            var (data, totalCount) = await _service.GetPagedSanPhamsAsync(paginationDto);
+
+            return Ok(new
+            {
+                TotalCount = totalCount,
+                paginationDto.PageNumber,
+                paginationDto.PageSize,
+                TotalPages = (int)Math.Ceiling((double)totalCount / paginationDto.PageSize),
+                Data = data
+            });
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] SanPhamCreateDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var result = await _service.CreateSanPhamAsync(dto);
-            return CreatedAtAction(nameof(Get), new { id = result.MaSP }, result);
+            var created = await _service.CreateSanPhamAsync(dto);
+
+            return CreatedAtAction(nameof(GetById), new { id = created.MaSP }, created);
         }
 
-        [HttpPut("{id:guid}")]
+        // PUT: api/sanpham/{id}
+        [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] SanPhamCreateDTO dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            return await _service.UpdateSanPhamAsync(id, dto)
-                ? NoContent()
-                : NotFound();
+            var updated = await _service.UpdateSanPhamAsync(id, dto);
+            if (!updated)
+                return NotFound();
+
+            return NoContent();
         }
 
-        [HttpDelete("{id:guid}")]
+        // DELETE: api/sanpham/{id}
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
-            => await _service.DeleteSanPhamAsync(id) ? NoContent() : NotFound();
+        {
+            var deleted = await _service.DeleteSanPhamAsync(id);
+            if (!deleted)
+                return NotFound();
+
+            return NoContent();
+        }
     }
 }

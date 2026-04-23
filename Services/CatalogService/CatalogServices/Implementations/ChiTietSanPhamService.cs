@@ -81,8 +81,8 @@ namespace CatalogService.CatalogServices.Implementations
             var entity = await _context.ChiTietSanPhams.FindAsync(id);
             if (entity == null) return false;
 
-            entity.Mau = dto.Mau;
-            entity.KichCo = dto.KichCo;
+            entity.Mau = dto.Mau ?? "";
+            entity.KichCo = dto.KichCo ?? "" ;
             entity.Gia = dto.Gia;
             entity.SoLuong = dto.SoLuong;
             entity.Anh = dto.Anh;

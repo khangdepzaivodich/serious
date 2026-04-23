@@ -15,20 +15,48 @@ namespace CatalogService.CatalogServices.Implementations
             _context = context;
         }
 
-        public async Task<IEnumerable<SanPhamDTO>> GetAllSanPhamsAsync()
+        public async Task<(IEnumerable<SanPhamDTO> Data, int TotalCount)> GetPagedSanPhamsAsync(SanPhamPaginationDTO paginationDto)
         {
-            var sanPhams = await _context.SanPhams
-                .Include(sp => sp.ChiTietSanPhams) // Eager loading variants
+            var query = _context.SanPhams
+            .Include(sp => sp.ChiTietSanPhams)
+            .Include(sp => sp.DanhMuc!)
+                .ThenInclude(dm => dm!.LoaiDanhMuc) 
+            .AsQueryable();
+            // FILTER: DanhMuc
+            if (paginationDto.MaDM.HasValue)
+            {
+                query = query.Where(sp => sp.MaDM == paginationDto.MaDM.Value);
+            }
+
+            // FILTER: LoaiDanhMuc
+            if (paginationDto.MaLDM.HasValue)
+            {
+                query = query.Where(sp =>
+                    sp.DanhMuc != null &&
+                    sp.DanhMuc.MaLDM == paginationDto.MaLDM.Value);
+            }
+
+            // FILTER: keyword
+            if (!string.IsNullOrWhiteSpace(paginationDto.Keyword))
+            {
+                query = query.Where(sp => sp.TenSP.Contains(paginationDto.Keyword));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var sanPhams = await query
+                .OrderBy(sp => sp.TenSP)
+                .Skip((paginationDto.PageNumber - 1) * paginationDto.PageSize)
+                .Take(paginationDto.PageSize)
                 .ToListAsync();
 
-            // Mapping Entity to DTO (You can also use AutoMapper for this)
-            return sanPhams.Select(sp => new SanPhamDTO
+            var data = sanPhams.Select(sp => new SanPhamDTO
             {
                 MaSP = sp.MaSP,
                 MaDM = sp.MaDM,
                 TenSP = sp.TenSP,
                 MoTa = sp.MoTa ?? "",
-                ChiTietSanPhams = sp.ChiTietSanPhams.Select(ct => new ChiTietSanPhamDTO
+                ChiTietSanPhams = [.. sp.ChiTietSanPhams.Select(ct => new ChiTietSanPhamDTO
                 {
                     MaCTSP = ct.MaCTSP,
                     Mau = ct.Mau,
@@ -36,9 +64,12 @@ namespace CatalogService.CatalogServices.Implementations
                     Gia = ct.Gia,
                     SoLuong = ct.SoLuong,
                     Anh = ct.Anh ?? ""
-                }).ToList()
+                })]
             });
+
+            return (data, totalCount);
         }
+
 
         public async Task<SanPhamDTO> GetSanPhamByIdAsync(Guid id)
         {
@@ -46,15 +77,23 @@ namespace CatalogService.CatalogServices.Implementations
                 .Include(x => x.ChiTietSanPhams)
                 .FirstOrDefaultAsync(x => x.MaSP == id);
 
-            if (sp == null) return null;
+            if (sp == null)
+                return new SanPhamDTO
+                {
+                    MaSP = Guid.Empty,
+                    MaDM = Guid.Empty,          
+                    TenSP = "",
+                    MoTa = "",
+                    ChiTietSanPhams = new List<ChiTietSanPhamDTO>()
+                };
 
             return new SanPhamDTO
             {
                 MaSP = sp.MaSP,
                 MaDM = sp.MaDM,
                 TenSP = sp.TenSP,
-                MoTa = sp.MoTa,
-                ChiTietSanPhams = sp.ChiTietSanPhams.Select(ct => new ChiTietSanPhamDTO
+                MoTa = sp.MoTa ?? "",
+                ChiTietSanPhams = [.. sp.ChiTietSanPhams.Select(ct => new ChiTietSanPhamDTO
                 {
                     MaCTSP = ct.MaCTSP,
                     Mau = ct.Mau,
@@ -62,7 +101,7 @@ namespace CatalogService.CatalogServices.Implementations
                     Gia = ct.Gia,
                     SoLuong = ct.SoLuong,
                     Anh = ct.Anh ?? ""
-                }).ToList()
+                })]
             };
         }
 
