@@ -18,8 +18,7 @@
         {
             try
             {
-                // Gọi API check-exist (không yêu cầu Admin) để kiểm tra user
-                var response = await _httpClient.GetAsync($"/api/User/check-exist/{userName}");
+                var response = await _httpClient.GetAsync($"/api/User/exists/{userName}");
 
                 return response.IsSuccessStatusCode;
             }

@@ -1,10 +1,11 @@
 <Solution>
   <Folder Name="/Services/">
-    <Project Path="Services/IdentityService/IdentityService.csproj"/>
-    <Project Path="Services/ChatService/ChatService.csproj"/>
-    <Project Path="Services/BasketService/BasketService.csproj"/>
-    <Project Path="Services/CatalogService/CatalogService.csproj"/>
-    <Project Path="Services/DiscountService/DiscountService.csproj"/>
-    <Project Path="Services/OrderingService/OrderingService.csproj"/>
+    <Project Path="Services/IdentityService/IdentityService.csproj" />
+    <Project Path="Services/ChatService/ChatService.csproj" />
+    <Project Path="Services/BasketService/BasketService.csproj" />
+    <Project Path="Services/CatalogService/CatalogService.csproj" />
+    <Project Path="Services/DiscountService/DiscountService.csproj" />
+    <Project Path="Services/OrderingService/OrderingService.csproj" />
   </Folder>
+  <Project Path="../blazor_fe/blazor_frontend/blazor_frontend.csproj" />
 </Solution>

@@ -7,6 +7,8 @@ namespace OrderingService.Ordering.API.DTOs
     {
         public Guid MaDH { get; set; }
         public Guid MaTK { get; set; }
+        public string HoTen { get; set; } = string.Empty;
+        public string SoDienThoai { get; set; } = string.Empty;
         public Guid? MaGG { get; set; }
         public DateTime NgayDat { get; set; }
         public decimal TongTien { get; set; }

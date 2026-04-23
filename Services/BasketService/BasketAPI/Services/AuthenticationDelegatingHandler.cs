@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
 using System.Net.Http.Headers;
 
 namespace BasketService.BasketAPI.Services
@@ -14,19 +13,22 @@ namespace BasketService.BasketAPI.Services
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            // Lấy token từ request hiện tại của user đang gọi BasketService
             var context = _httpContextAccessor.HttpContext;
             if (context != null)
             {
-                var token = await context.GetTokenAsync("access_token");
-                if (!string.IsNullOrEmpty(token))
+                var authorization = context.Request.Headers.Authorization.ToString();
+                if (!string.IsNullOrWhiteSpace(authorization) && authenticationHeaderValueCanParse(authorization))
                 {
-                    // Gắn token này vào request chuẩn bị gởi đi (sang Identity/Catalog)
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                    request.Headers.Authorization = AuthenticationHeaderValue.Parse(authorization);
                 }
             }
 
             return await base.SendAsync(request, cancellationToken);
+        }
+
+        private static bool authenticationHeaderValueCanParse(string value)
+        {
+            return AuthenticationHeaderValue.TryParse(value, out _);
         }
     }
 }

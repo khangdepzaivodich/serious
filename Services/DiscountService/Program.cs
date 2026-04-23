@@ -5,17 +5,18 @@ using DiscountService.Discount.API.DiscountServices.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy.WithOrigins("https://localhost:7119", "http://localhost:5270")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
 
 // Add services to the container.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.WithOrigins("https://localhost:7119", "http://localhost:5270")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
@@ -35,8 +36,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 
-app.UseCors("AllowFrontend");
+
 app.UseAuthorization();
 app.MapControllers();
 

@@ -1,16 +1,16 @@
-using CatalogService.CatalogServices.Interfaces;
 using CatalogService.CatalogServices.Implementations;
+using CatalogService.CatalogServices.Interfaces;
 using CatalogService.Data;
 using Microsoft.EntityFrameworkCore;
-var builder = WebApplication.CreateBuilder(args);
 
+var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new Exception("Connection string not found");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
-    //options.UseInMemoryDatabase("CatalogSVDb_Memory")); chạy db trên ram ko cần cài sql để test api
+//options.UseInMemoryDatabase("CatalogSVDb_Memory"); chạy db trên ram ko cần cài sql để test api
 
 builder.Services.AddScoped<ISanPhamService, SanPhamService>();
 builder.Services.AddScoped<ILoaiDanhMucService, LoaiDanhMucService>();
@@ -21,15 +21,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        policy.WithOrigins("https://localhost:7119", "http://localhost:5270")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
 builder.Services.AddControllers();
-
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -49,9 +48,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors("AllowAll");
-
 app.UseAuthorization();
 
 app.MapControllers();
