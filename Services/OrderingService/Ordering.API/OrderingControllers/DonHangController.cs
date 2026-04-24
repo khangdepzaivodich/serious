@@ -20,20 +20,32 @@ namespace OrderingService.Ordering.API.OrderingControllers
         [HttpPost]
         public async Task<IActionResult> CreateDonHang([FromBody] CreateDonHangRequest request)
         {
-            if (request == null)
-                return BadRequest("Invalid request.");
+            try 
+            {
+                if (request == null)
+                    return BadRequest("Invalid request.");
 
-            if (request.MaTK == Guid.Empty)
-                return BadRequest("User is required.");
+                if (request.MaTK == Guid.Empty)
+                    return BadRequest("User is required.");
 
-            if (request.ChiTietDonHangs == null || request.ChiTietDonHangs.Count == 0)
-                return BadRequest("Cart is empty.");
+                if (request.ChiTietDonHangs == null || request.ChiTietDonHangs.Count == 0)
+                    return BadRequest("Cart is empty.");
 
-            if (string.IsNullOrWhiteSpace(request.HoTen) || string.IsNullOrWhiteSpace(request.SoDienThoai) || string.IsNullOrWhiteSpace(request.DiaChiGiaoHang))
-                return BadRequest("Customer information is required.");
+                if (string.IsNullOrWhiteSpace(request.HoTen) || string.IsNullOrWhiteSpace(request.SoDienThoai) || string.IsNullOrWhiteSpace(request.DiaChiGiaoHang))
+                    return BadRequest("Customer information is required.");
 
-            var result = await _donHangService.CreateDonHangAsync(request);
-            return CreatedAtAction(nameof(GetDonHangById), new { maDH = result.MaDH }, result);
+                var result = await _donHangService.CreateDonHangAsync(request);
+                return CreatedAtAction(nameof(GetDonHangById), new { maDH = result.MaDH }, result);
+            }
+            catch (Exception ex)
+            {
+                var errorMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                Console.WriteLine("--- ERROR CREATING ORDER ---");
+                Console.WriteLine(errorMsg);
+                Console.WriteLine(ex.StackTrace);
+                
+                return StatusCode(500, errorMsg);
+            }
         }
 
         [HttpGet("{maDH}")]
