@@ -7,17 +7,26 @@ namespace CatalogService.CatalogServices
 {
     public class PhotoService : IPhotoService
     {
-        private readonly Cloudinary _cloudinary;
+        private readonly CloudinarySettings _settings;
+        private readonly Lazy<Cloudinary> _cloudinary;
 
         public PhotoService(IOptions<CloudinarySettings> config)
         {
-            var acc = new Account(
-                config.Value.CloudName,
-                config.Value.ApiKey,
-                config.Value.ApiSecret
-            );
+            _settings = config.Value;
+            _cloudinary = new Lazy<Cloudinary>(CreateCloudinary);
+        }
 
-            _cloudinary = new Cloudinary(acc);
+        private Cloudinary CreateCloudinary()
+        {
+            if (string.IsNullOrWhiteSpace(_settings.CloudName)
+                || string.IsNullOrWhiteSpace(_settings.ApiKey)
+                || string.IsNullOrWhiteSpace(_settings.ApiSecret))
+            {
+                throw new InvalidOperationException("CloudinarySettings is missing. Please configure CloudName, ApiKey, and ApiSecret in appsettings.Development.json.");
+            }
+
+            var acc = new Account(_settings.CloudName, _settings.ApiKey, _settings.ApiSecret);
+            return new Cloudinary(acc);
         }
 
         public async Task<ImageUploadResult> AddPhotoAsync(IFormFile file)
@@ -33,7 +42,7 @@ namespace CatalogService.CatalogServices
                     Transformation = new Transformation().Height(500).Width(500).Crop("fill").Gravity("face"),
                     Folder = "AE2-Catalog"
                 };
-                uploadResult = await _cloudinary.UploadAsync(uploadParams);
+                uploadResult = await _cloudinary.Value.UploadAsync(uploadParams);
             }
 
             return uploadResult;
@@ -42,7 +51,7 @@ namespace CatalogService.CatalogServices
         public async Task<DeletionResult> DeletePhotoAsync(string publicId)
         {
             var deleteParams = new DeletionParams(publicId);
-            return await _cloudinary.DestroyAsync(deleteParams);
+            return await _cloudinary.Value.DestroyAsync(deleteParams);
         }
     }
 }

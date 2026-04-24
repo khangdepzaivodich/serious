@@ -32,6 +32,8 @@ namespace ChatService.ChatAPI
                 await _redisService.SetStaffAvatarAsync(staffId, staffAvatar);
             }
             await Groups.AddToGroupAsync(Context.ConnectionId, "AdminGroup");
+
+            await ReassignWaitingSessionsAsync();
         }
 
         // --- CÁC HÀM XỬ LÝ KHÁCH HÀNG / NGƯỜI DÙNG ---
@@ -79,14 +81,13 @@ namespace ChatService.ChatAPI
             };
 
             await _chatService.TaoPhienAsync(phienMoi);
+            await Groups.AddToGroupAsync(Context.ConnectionId, phienMoi.Id.ToString());
 
-            if (status == "QUEUE")
+            if (phienMoi.StaffID == "BOT")
             {
                 await _redisService.AddToWaitingQueueAsync(phienMoi.Id.ToString());
                 await Clients.Caller.SendAsync("SessionQueued");
             }
-
-            await Groups.AddToGroupAsync(Context.ConnectionId, phienMoi.Id.ToString());
             // Gửi thông báo cho nhân viên nếu có online
             if(assignedStaffId != null) 
             {
@@ -151,6 +152,42 @@ namespace ChatService.ChatAPI
             {
                 var phien = await _chatService.GetPhienByIdAsync(tinNhan.MaPhien);
                 if (phien == null) return;
+
+                // --- LOGIC REASSIGN NẾU ĐANG GÁN CHO BOT (QUEUE) ---
+                if (phien.StaffID == "BOT" || phien.TrangThai == "QUEUE")
+                {
+                    var staffId = await _redisService.AssignLeastBusyStaffAsync();
+                    if (staffId != null)
+                    {
+                        var staffName = await _redisService.GetStaffNameAsync(staffId);
+                        var staffAvatar = await _redisService.GetStaffAvatarAsync(staffId);
+                        await _chatService.CapNhatThongTinStaffPhienAsync(phien.Id, staffId, staffName ?? "Tư vấn viên", staffAvatar);
+                        await _chatService.CapNhatTrangThaiPhienAsync(phien.Id, "ACTIVE", "QUEUE");
+
+                        phien.StaffID = staffId; 
+                        phien.TrangThai = "ACTIVE";
+
+                        await Clients.Group(phien.Id.ToString()).SendAsync("SessionAssigned", staffId, staffName ?? "Tư vấn viên");
+                        await Clients.Group("AdminGroup").SendAsync("NewChatAssigned", phien);
+                    }
+                    else
+                    {
+                        // VẪN KHÔNG CÓ STAFF -> Bot trả lời tự động (theo yêu cầu USER: Chỉ trả lời khi user nhắn tin)
+                        var botMessage = new HoiThoai
+                        {
+                            MaPhien = phien.Id,
+                            SenderID = Guid.Empty,
+                            NoiDung = "Đã nhận được tin nhắn , xin vui lòng đợi 1 lát",
+                            SenderName = "Bot tự động",
+                            SenderType = "STAFF",
+                            SenderAvatar = "https://ui-avatars.com/api/?name=Bot&background=0b3b72&color=fff",
+                            ThoiGianGui = DateTime.UtcNow.AddMilliseconds(500),
+                            TrangThai = "sent"
+                        };
+                        await _chatService.GuiTinNhanAsync(botMessage);
+                        await Clients.Group(phien.Id.ToString()).SendAsync("ReceiveNewMessage", botMessage);
+                    }
+                }
 
                 // --- LOGIC REASSIGN NẾU STAFF OFFLINE > 1 NGÀY ---
                 if (!string.IsNullOrEmpty(phien.StaffID) && phien.StaffID != "BOT")
@@ -263,6 +300,40 @@ namespace ChatService.ChatAPI
                 await _redisService.IncreaseStaffWorkloadAsync(staffId);
                 await Clients.Group("AdminGroup").SendAsync("SessionReopened", maPhien);
                 await Clients.Group(maPhien).SendAsync("SessionReopened", maPhien);
+            }
+        }
+
+        private async Task ReassignWaitingSessionsAsync()
+        {
+            while (true)
+            {
+                var nextSessionId = await _redisService.GetNextInWaitingQueueAsync();
+                if (string.IsNullOrWhiteSpace(nextSessionId))
+                {
+                    return;
+                }
+
+                var session = await _chatService.GetPhienByIdAsync(Guid.Parse(nextSessionId));
+                if (session == null || !string.Equals(session.TrangThai, "QUEUE", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var staffId = await _redisService.AssignLeastBusyStaffAsync();
+                if (string.IsNullOrWhiteSpace(staffId))
+                {
+                    await _redisService.AddToWaitingQueueAsync(nextSessionId);
+                    return;
+                }
+
+                var staffName = await _redisService.GetStaffNameAsync(staffId);
+                var staffAvatar = await _redisService.GetStaffAvatarAsync(staffId);
+
+                await _chatService.CapNhatThongTinStaffPhienAsync(session.Id, staffId, staffName ?? "Tư vấn viên", staffAvatar);
+                await _chatService.CapNhatTrangThaiPhienAsync(session.Id, "ACTIVE", "QUEUE");
+
+                await Clients.Group(nextSessionId).SendAsync("SessionAssigned", staffId, staffName ?? "Tư vấn viên");
+                await Clients.Group("AdminGroup").SendAsync("NewChatAssigned", session);
             }
         }
     }
