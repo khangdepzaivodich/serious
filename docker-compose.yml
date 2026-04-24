@@ -107,6 +107,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       Redis__ConnectionString: ${REDIS_CONNECTION}
+      ApiSettings__CatalogUrl: "http://catalog-service:8080"
+      ApiSettings__IdentityUrl: "http://identity-service:8080"
     networks:
       - backend
 
