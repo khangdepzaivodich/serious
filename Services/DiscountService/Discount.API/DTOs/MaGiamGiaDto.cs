@@ -8,6 +8,7 @@ namespace DiscountService.Discount.API.DTOs
         public string MaCode { get; set; } = string.Empty;
         public string Loai { get; set; } = string.Empty;
         public decimal SoTien { get; set; }
+        public decimal? DonHangToiThieu { get; set; }
         public decimal? GiaTriGiamToiDa { get; set; }
         public int SoLuong { get; set; }
         public DateTime HanSuDung { get; set; }
@@ -23,6 +24,7 @@ namespace DiscountService.Discount.API.DTOs
         public string MaCode { get; set; } = string.Empty;
         public string Loai { get; set; } = string.Empty;
         public decimal SoTien { get; set; }
+        public decimal? DonHangToiThieu { get; set; }
         public decimal? GiaTriGiamToiDa { get; set; }
         public int SoLuong { get; set; }
         public DateTime HanSuDung { get; set; }

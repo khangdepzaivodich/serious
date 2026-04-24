@@ -78,5 +78,13 @@ namespace OrderingService.Ordering.API.OrderingControllers
             if (!success) return NotFound();
             return NoContent();
         }
+
+        [HttpPost("sync-sales-count")]
+        public async Task<IActionResult> SyncSalesCount()
+        {
+            var success = await _donHangService.SyncSalesCountAsync();
+            if (!success) return StatusCode(500, "Failed to sync sales count");
+            return Ok("Sales count synced successfully");
+        }
     }
 }

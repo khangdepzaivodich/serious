@@ -10,5 +10,7 @@ namespace CatalogService.CatalogServices.Interfaces
         Task<SanPhamDTO> CreateSanPhamAsync(SanPhamCreateDTO createDto);
         Task<bool> UpdateSanPhamAsync(Guid id, SanPhamCreateDTO updateDto);
         Task<bool> DeleteSanPhamAsync(Guid id);
+        Task<bool> IncrementLuotBanAsync(List<SalesUpdateDto> salesUpdates);
+        Task<bool> SyncLuotBanAsync(List<SalesUpdateDto> salesUpdates, bool isFullSync = true);
     }
 }

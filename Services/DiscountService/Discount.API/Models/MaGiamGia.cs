@@ -21,6 +21,11 @@ namespace DiscountService.Discount.API.Models
         [BsonRepresentation(BsonType.Decimal128)]
         public decimal SoTien { get; set; } // is % or money
 
+        [BsonElement("donHangToiThieu")]
+        [BsonRepresentation(BsonType.Decimal128)]
+        [BsonIgnoreIfNull]
+        public decimal? DonHangToiThieu { get; set; }
+
         [BsonElement("giaTriGiamToiDa")]
         [BsonRepresentation(BsonType.Decimal128)]
         [BsonIgnoreIfNull]

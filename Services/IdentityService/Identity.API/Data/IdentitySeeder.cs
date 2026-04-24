@@ -9,8 +9,8 @@ namespace IdentityService.Identity.API.Data
     {
         public static async Task SeedDefaultAdminAsync(AppDbContext context)
         {
-            const string adminEmail = "admin";
-            const string adminPassword = "admin";
+            const string adminEmail = "admin@gmail.com";
+            const string adminPassword = "123456";
 
             var admin = await context.Users.FirstOrDefaultAsync(x => x.Email == adminEmail);
             var adminPasswordHash = HashPassword(adminPassword);
@@ -21,7 +21,7 @@ namespace IdentityService.Identity.API.Data
                 {
                     MaTK = Guid.NewGuid(),
                     Email = adminEmail,
-                    SoDienThoai = "0000000000",
+                    SoDienThoai = "0900000000",
                     MatKhauHash = adminPasswordHash,
                     HoTen = "Administrator",
                     DiaChi = "System",

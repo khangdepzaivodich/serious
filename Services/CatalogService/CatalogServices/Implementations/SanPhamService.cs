@@ -57,8 +57,17 @@ namespace CatalogService.CatalogServices.Implementations
 
             var totalCount = await query.CountAsync();
 
-            var sanPhams = await query
-                .OrderBy(sp => sp.TenSP)
+            // Dynamic sorting based on SortBy parameter
+            IOrderedQueryable<SanPham> orderedQuery = paginationDto.SortBy switch
+            {
+                "best-seller" => query.OrderByDescending(sp => sp.LuotBan),
+                "price-asc" => query.OrderBy(sp => sp.ChiTietSanPhams.Min(ct => ct.Gia)),
+                "price-desc" => query.OrderByDescending(sp => sp.ChiTietSanPhams.Max(ct => ct.Gia)),
+                "newest" => query.OrderByDescending(sp => sp.MaSP), // MaSP as proxy for creation order
+                _ => query.OrderBy(sp => sp.TenSP)
+            };
+
+            var sanPhams = await orderedQuery
                 .Skip((paginationDto.PageNumber - 1) * paginationDto.PageSize)
                 .Take(paginationDto.PageSize)
                 .ToListAsync();
@@ -69,6 +78,7 @@ namespace CatalogService.CatalogServices.Implementations
                 MaDM = sp.MaDM,
                 TenSP = sp.TenSP,
                 MoTa = sp.MoTa ?? "",
+                LuotBan = sp.LuotBan,
                 ChiTietSanPhams = [.. sp.ChiTietSanPhams.Select(ct => new ChiTietSanPhamDTO
                 {
                     MaCTSP = ct.MaCTSP,
@@ -106,6 +116,7 @@ namespace CatalogService.CatalogServices.Implementations
                 MaDM = sp.MaDM,
                 TenSP = sp.TenSP,
                 MoTa = sp.MoTa ?? "",
+                LuotBan = sp.LuotBan,
                 ChiTietSanPhams = [.. sp.ChiTietSanPhams.Select(ct => new ChiTietSanPhamDTO
                 {
                     MaCTSP = ct.MaCTSP,
@@ -136,6 +147,7 @@ namespace CatalogService.CatalogServices.Implementations
                 MaDM = sp.MaDM,
                 TenSP = sp.TenSP,
                 MoTa = sp.MoTa ?? "",
+                LuotBan = sp.LuotBan,
                 ChiTietSanPhams = [.. sp.ChiTietSanPhams.Select(ct => new ChiTietSanPhamDTO
                 {
                     MaCTSP = ct.MaCTSP,
@@ -188,7 +200,8 @@ namespace CatalogService.CatalogServices.Implementations
                 MaSP = newSanPham.MaSP,
                 MaDM = newSanPham.MaDM,
                 TenSP = newSanPham.TenSP,
-                MoTa = newSanPham.MoTa
+                MoTa = newSanPham.MoTa,
+                LuotBan = newSanPham.LuotBan
             };
         }
 
@@ -214,6 +227,100 @@ namespace CatalogService.CatalogServices.Implementations
             _context.SanPhams.Remove(sanPham);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<bool> IncrementLuotBanAsync(List<SalesUpdateDto> salesUpdates)
+        {
+            if (salesUpdates == null || !salesUpdates.Any()) return true;
+
+            foreach (var update in salesUpdates)
+            {
+                // Find MaSP from MaCTSP
+                var ctsp = await _context.ChiTietSanPhams
+                    .Include(x => x.SanPham)
+                    .FirstOrDefaultAsync(x => x.MaCTSP == update.MaCTSP);
+
+                if (ctsp != null && ctsp.SanPham != null)
+                {
+                    ctsp.SanPham.LuotBan += update.Quantity;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> SyncLuotBanAsync(List<SalesUpdateDto> salesUpdates, bool isFullSync = true)
+        {
+            try
+            {
+                if (isFullSync)
+                {
+                    // Chỉ reset khi là Full Sync (bấm nút đồng bộ thủ công)
+                    var allProducts = await _context.SanPhams.ToListAsync();
+                    foreach (var sp in allProducts)
+                    {
+                        sp.LuotBan = 0;
+                    }
+                }
+
+                if (salesUpdates != null && salesUpdates.Any())
+                {
+                    // Set lại giá trị chính xác từ tổng đơn hàng đã hoàn tất
+                    foreach (var update in salesUpdates)
+                    {
+                        Console.WriteLine($"[CATALOG SYNC] Processing: {update.ProductName} | ID: {update.MaCTSP} | Qty: {update.Quantity}");
+                        
+                        // 1. Thử tìm theo Mã Chi Tiết (MaCTSP)
+                        var ctsp = await _context.ChiTietSanPhams
+                            .Include(x => x.SanPham)
+                            .FirstOrDefaultAsync(x => x.MaCTSP == update.MaCTSP);
+
+                        if (ctsp != null && ctsp.SanPham != null)
+                        {
+                            ctsp.SanPham.LuotBan += update.Quantity;
+                            Console.WriteLine($"[CATALOG SYNC] Updated by Variant ID: {ctsp.SanPham.TenSP}");
+                            continue;
+                        }
+
+                        // 2. Thử tìm trực tiếp theo Mã Sản Phẩm (MaSP) - Phòng trường hợp Ordering gửi nhầm MaSP
+                        var spByMa = await _context.SanPhams
+                            .FirstOrDefaultAsync(x => x.MaSP == update.MaCTSP);
+                        if (spByMa != null)
+                        {
+                            spByMa.LuotBan += update.Quantity;
+                            Console.WriteLine($"[CATALOG SYNC] Updated by Product ID: {spByMa.TenSP}");
+                            continue;
+                        }
+
+                        // 3. Thử tìm theo Tên Sản Phẩm (ProductName) - Cú chốt cuối cùng
+                        if (!string.IsNullOrEmpty(update.ProductName))
+                        {
+                            var spByName = await _context.SanPhams
+                                .FirstOrDefaultAsync(x => x.TenSP.ToLower().Contains(update.ProductName.ToLower()) || 
+                                                         update.ProductName.ToLower().Contains(x.TenSP.ToLower()));
+                            if (spByName != null)
+                            {
+                                spByName.LuotBan += update.Quantity;
+                                Console.WriteLine($"[CATALOG SYNC] Updated by Name: {spByName.TenSP}");
+                                continue;
+                            }
+                        }
+
+                        Console.WriteLine($"[CATALOG SYNC] WARNING: Could not find product for {update.ProductName} ({update.MaCTSP})");
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                Console.WriteLine("[CATALOG SYNC] Successfully synced sales counts.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CATALOG SYNC] ERROR: {ex.Message}");
+                if (ex.InnerException != null) Console.WriteLine($"Inner: {ex.InnerException.Message}");
+                return false;
+            }
         }
     }
 }

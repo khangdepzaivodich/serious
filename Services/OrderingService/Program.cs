@@ -18,6 +18,14 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpClient("CatalogService", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7103/"); // URL of Catalog API
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+});
 
 // Register DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>

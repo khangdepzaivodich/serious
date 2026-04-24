@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -18,6 +18,8 @@ namespace CatalogService.Models
         public required string TenSP { get; set; }
 
         public string? MoTa { get; set; }
+
+        public int LuotBan { get; set; } = 0;
 
         [ForeignKey("MaDM")]
         public virtual DanhMuc? DanhMuc { get; set; }

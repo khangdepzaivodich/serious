@@ -18,9 +18,6 @@ namespace CatalogService.CatalogControllers
         [HttpGet]
         public async Task<IActionResult> GetPaged([FromQuery] SanPhamPaginationDTO paginationDto)
         {
-            if (paginationDto.PageNumber <= 0 || paginationDto.PageSize <= 0)
-                return BadRequest("pageNumber and pageSize must be > 0");
-
             var (data, totalCount) = await _service.GetPagedSanPhamsAsync(paginationDto);
 
             return Ok(new
@@ -80,7 +77,6 @@ namespace CatalogService.CatalogControllers
             return NoContent();
         }
 
-        // DELETE: api/sanpham/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -89,6 +85,21 @@ namespace CatalogService.CatalogControllers
                 return NotFound();
 
             return NoContent();
+        }
+
+        [HttpPost("update-sales-count")]
+        public async Task<IActionResult> UpdateSalesCount([FromBody] List<SalesUpdateDto> salesUpdates)
+        {
+            await _service.IncrementLuotBanAsync(salesUpdates);
+            return Ok();
+        }
+
+        [HttpPost("sync-sales-count")]
+        public async Task<IActionResult> SyncSalesCount([FromBody] List<SalesUpdateDto> salesUpdates, [FromQuery] bool isFullSync = true)
+        {
+            var success = await _service.SyncLuotBanAsync(salesUpdates, isFullSync);
+            if (!success) return StatusCode(500, "Failed to sync sales count");
+            return Ok("Sales count synced successfully");
         }
     }
 }

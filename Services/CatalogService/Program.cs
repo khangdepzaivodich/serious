@@ -48,6 +48,24 @@ using (var scope = app.Services.CreateScope())
 
     // Pass the correct file path: content root is the project folder for CatalogService
     var jsonPath = Path.Combine(builder.Environment.ContentRootPath, "Data", "data.json");
+
+    // [HACK FIX] Đảm bảo cột LuotBan tồn tại
+    try 
+    {
+        var conn = dbContext.Database.GetDbConnection();
+        if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+        using (var command = conn.CreateCommand())
+        {
+            command.CommandText = "IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('SanPhams') AND name = 'LuotBan') ALTER TABLE SanPhams ADD LuotBan INT NOT NULL DEFAULT 0;";
+            await command.ExecuteNonQueryAsync();
+        }
+        Console.WriteLine("[CATALOG] Schema check: LuotBan column is ready.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("[CATALOG] Manual schema fix info: " + ex.Message);
+    }
+
     await Seeder.SeedAsync(dbContext, jsonPath);
 }
 

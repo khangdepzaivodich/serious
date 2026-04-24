@@ -37,10 +37,10 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
             {
                 MaTK = Guid.NewGuid(),
                 Email = request.Email,
-                SoDienThoai = request.SoDienThoai,
+                SoDienThoai = request.SoDienThoai ?? "",
                 MatKhauHash = HashPassword(request.MatKhau),
                 HoTen = request.HoTen,
-                DiaChi = request.DiaChi,
+                DiaChi = request.DiaChi ?? "",
                 VaiTro = "User",
                 TrangThai = "Active",
                 NgayThangNamSinh = request.NgayThangNamSinh,

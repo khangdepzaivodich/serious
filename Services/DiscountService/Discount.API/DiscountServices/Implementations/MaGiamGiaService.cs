@@ -70,6 +70,7 @@ namespace DiscountService.Discount.API.DiscountServices.Implementations
                 MaCode = request.MaCode,
                 Loai = request.Loai,
                 SoTien = request.SoTien,
+                DonHangToiThieu = request.DonHangToiThieu,
                 GiaTriGiamToiDa = request.GiaTriGiamToiDa,
                 SoLuong = request.SoLuong,
                 HanSuDung = request.HanSuDung,
@@ -82,6 +83,32 @@ namespace DiscountService.Discount.API.DiscountServices.Implementations
 
             await _discountsCollection.InsertOneAsync(discount);
             return MapToDto(discount);
+        }
+
+        public async Task<MaGiamGiaDto?> UpdateDiscountAsync(Guid id, CreateMaGiamGiaRequest request)
+        {
+            var normalizedScope = NormalizeScope(request);
+            var update = Builders<MaGiamGia>.Update
+                .Set(x => x.MaCode, request.MaCode)
+                .Set(x => x.Loai, request.Loai)
+                .Set(x => x.SoTien, request.SoTien)
+                .Set(x => x.DonHangToiThieu, request.DonHangToiThieu)
+                .Set(x => x.GiaTriGiamToiDa, request.GiaTriGiamToiDa)
+                .Set(x => x.SoLuong, request.SoLuong)
+                .Set(x => x.HanSuDung, request.HanSuDung)
+                .Set(x => x.ApDungCho, normalizedScope.ApDungCho)
+                .Set(x => x.MaLDM, normalizedScope.MaLDM)
+                .Set(x => x.MaDM, normalizedScope.MaDM)
+                .Set(x => x.MaSP, normalizedScope.MaSP)
+                .Set(x => x.MaSPs, normalizedScope.MaSPs);
+
+            var options = new FindOneAndUpdateOptions<MaGiamGia>
+            {
+                ReturnDocument = ReturnDocument.After
+            };
+
+            var result = await _discountsCollection.FindOneAndUpdateAsync(x => x.MaGG == id, update, options);
+            return result != null ? MapToDto(result) : null;
         }
 
         public async Task<bool> DecrementDiscountQuantityAsync(string maCode)
@@ -110,6 +137,7 @@ namespace DiscountService.Discount.API.DiscountServices.Implementations
                 MaCode = model.MaCode,
                 Loai = model.Loai,
                 SoTien = model.SoTien,
+                DonHangToiThieu = model.DonHangToiThieu,
                 GiaTriGiamToiDa = model.GiaTriGiamToiDa,
                 SoLuong = model.SoLuong,
                 HanSuDung = model.HanSuDung,
@@ -128,6 +156,7 @@ namespace DiscountService.Discount.API.DiscountServices.Implementations
                 MaCode = request.MaCode,
                 Loai = request.Loai,
                 SoTien = request.SoTien,
+                DonHangToiThieu = request.DonHangToiThieu,
                 GiaTriGiamToiDa = request.GiaTriGiamToiDa,
                 SoLuong = request.SoLuong,
                 HanSuDung = request.HanSuDung,

@@ -47,6 +47,14 @@ namespace DiscountService.Discount.API.DiscountControllers
             return CreatedAtAction(nameof(GetDiscountById), new { maGG = result.MaGG }, result);
         }
 
+        [HttpPut("{maGG:guid}")]
+        public async Task<IActionResult> UpdateDiscount(Guid maGG, [FromBody] CreateMaGiamGiaRequest request)
+        {
+            var result = await _discountService.UpdateDiscountAsync(maGG, request);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+
         [HttpPatch("use/{maCode}")]
         public async Task<IActionResult> UseDiscount(string maCode)
         {

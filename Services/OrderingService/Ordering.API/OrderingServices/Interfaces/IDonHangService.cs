@@ -12,5 +12,6 @@ namespace OrderingService.Ordering.API.OrderingServices.Interfaces
         Task<IEnumerable<DonHangDto>> GetDonHangsByUserIdAsync(Guid maTK);
         Task<PagedDonHangResult> GetAllDonHangsAsync(int page, int pageSize);
         Task<bool> UpdateDonHangStatusAsync(Guid maDH, string newStatus);
+        Task<bool> SyncSalesCountAsync();
     }
 }
