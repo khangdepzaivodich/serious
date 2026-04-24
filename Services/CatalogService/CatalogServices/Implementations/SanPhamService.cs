@@ -39,7 +39,8 @@ namespace CatalogService.CatalogServices.Implementations
             // FILTER: keyword
             if (!string.IsNullOrWhiteSpace(paginationDto.Keyword))
             {
-                query = query.Where(sp => sp.TenSP.Contains(paginationDto.Keyword));
+                var kw = paginationDto.Keyword.ToLower();
+                query = query.Where(sp => sp.TenSP.ToLower().Contains(kw));
             }
 
             // FILTER: Price

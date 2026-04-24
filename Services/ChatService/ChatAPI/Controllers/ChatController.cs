@@ -45,7 +45,7 @@ namespace ChatService.ChatAPI.Controllers
                 {
                     phien.StaffHoTen = nameFromRedis;
                     // Tiện tay cập nhật ngược lại vào MongoDB để lần sau không phải tra cứu nữa
-                    await _chatService.CapNhatStaffNamePhienAsync(phien.Id, nameFromRedis);
+                    await _chatService.CapNhatThongTinStaffPhienAsync(phien.Id, phien.StaffID, nameFromRedis);
                 }
             }
 

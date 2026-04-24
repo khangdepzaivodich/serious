@@ -17,8 +17,12 @@ namespace ChatService.ChatAPI.Models
         [BsonRepresentation(BsonType.String)]
         public Guid SenderID { get; set; }
 
-        // user || guest
+        // user || guest || staff
         public string SenderType { get; set; } = "user";
+
+        public string SenderName { get; set; } = string.Empty;
+
+        public string SenderAvatar { get; set; } = string.Empty;
 
         public string NoiDung { get; set; } = string.Empty;
 

@@ -13,10 +13,43 @@ namespace IdentityService.Identity.API.IdentityControllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _service;
+        private readonly IdentityService.Services.IPhotoService _photoService;
 
-        public UserController(IUserService service)
+        public UserController(IUserService service, IdentityService.Services.IPhotoService photoService)
         {
             _service = service;
+            _photoService = photoService;
+        }
+
+        [HttpPost("me/avatar")]
+        [DisableRequestSizeLimit]
+        [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
+        public async Task<IActionResult> UpdateAvatar(IFormFile file)
+        {
+            var userId = GetUserId();
+            var user = await _service.GetMe(userId);
+            if (user == null) return NotFound("User not found");
+
+            var result = await _photoService.AddPhotoAsync(file);
+
+            if (result.Error != null) return BadRequest(result.Error.Message);
+
+            // Cập nhật URL ảnh vào User
+            // Giả sử UpdateMe có thể cập nhật avatar hoặc ta tạo UpdateAvatar
+            // Ở đây ta dùng UpdateMeRequest nếu nó có trường Avatar, nếu không mình sẽ sửa DTO
+            var updateRequest = new UpdateMeRequest
+            {
+                HoTen = user.HoTen,
+                SoDienThoai = user.SoDienThoai,
+                DiaChi = user.DiaChi,
+                NgaySinh = user.NgaySinh,
+                GioiTinh = user.GioiTinh,
+                Avatar = result.SecureUrl.AbsoluteUri
+            };
+
+            await _service.UpdateMe(userId, updateRequest);
+
+            return Ok(new { url = result.SecureUrl.AbsoluteUri });
         }
 
         private Guid GetUserId()
@@ -35,9 +68,12 @@ namespace IdentityService.Identity.API.IdentityControllers
         [HttpPut("me")]
         public async Task<IActionResult> UpdateMe(UpdateMeRequest request)
         {
-            var ok = await _service.UpdateMe(GetUserId(), request);
+            var userId = GetUserId();
+            var ok = await _service.UpdateMe(userId, request);
             if (!ok) return NotFound();
-            return Ok("Updated");
+            
+            var updatedUser = await _service.GetMe(userId);
+            return Ok(updatedUser);
         }
 
         [HttpPut("change-password")]

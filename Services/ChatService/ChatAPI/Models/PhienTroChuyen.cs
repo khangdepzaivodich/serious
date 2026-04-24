@@ -28,8 +28,10 @@ namespace ChatService.ChatAPI.Models
         public string LastMessage { get; set; } = string.Empty;
 
         public string HoTen { get; set; } = string.Empty; // Tên khách hàng (rỗng nếu GUEST)
+        public string Avatar { get; set; } = string.Empty; // Avatar khách hàng
 
         public string StaffHoTen { get; set; } = string.Empty; // Tên nhân viên hỗ trợ
+        public string StaffAvatar { get; set; } = string.Empty; // Avatar nhân viên
 
         public int UnreadCount { get; set; } = 0;
     }

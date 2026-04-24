@@ -56,6 +56,7 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
         public async Task<(bool Success, string Message, object? Data)> Login(LoginRequest request)
         {
             var user = await _context.Users
+                .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Email == request.Email);
 
             if (user == null)
@@ -66,13 +67,14 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
 
             var token = GenerateJwt(user);
 
-            var data = new
+            var data = new LoginResponse
             {
-                token,
-                userId = user.MaTK,
-                email = user.Email,
-                role = user.VaiTro,
-                hoTen = user.HoTen
+                Token = token,
+                UserId = user.MaTK,
+                Email = user.Email,
+                Role = user.VaiTro ?? "User",
+                HoTen = user.HoTen,
+                Avatar = string.IsNullOrWhiteSpace(user.Avatar) ? null : user.Avatar
             };
 
             return (true, "Login success", data);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -25,6 +25,8 @@ namespace IdentityService.Migrations
                     TrangThai = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NgayThangNamSinh = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastActiveAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    GioiTinh = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ResetToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ResetTokenExpires = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },

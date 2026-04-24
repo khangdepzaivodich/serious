@@ -4,11 +4,17 @@ using IdentityService.Identity.API.IdentityServices.Implementations;
 using IdentityService.Identity.API.IdentityServices.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 100 * 1024 * 1024; // 100MB
+});
 
 // =====================
 // Controllers
@@ -29,7 +35,10 @@ builder.Services.AddControllers();
 // DbContext
 // =====================
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+});
 
 // =====================
 // JWT Settings
@@ -51,6 +60,8 @@ builder.Services.AddSingleton<IEmailService, EmailService>();
 // =====================
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IdentityService.Services.IPhotoService, IdentityService.Services.PhotoService>();
+builder.Services.Configure<IdentityService.Helpers.CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
 // =====================
 // Swagger
@@ -102,6 +113,20 @@ using (var scope = app.Services.CreateScope())
 // =====================
 // Middleware
 // =====================
+app.Use(async (context, next) =>
+{
+    var authHeader = context.Request.Headers["Authorization"].ToString();
+    if (string.IsNullOrEmpty(authHeader))
+    {
+        Console.WriteLine($"[AUTH LOG] Missing Authorization Header for {context.Request.Path}");
+    }
+    else 
+    {
+        Console.WriteLine($"[AUTH LOG] Found Header: {authHeader.Substring(0, Math.Min(authHeader.Length, 30))}...");
+    }
+    await next();
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

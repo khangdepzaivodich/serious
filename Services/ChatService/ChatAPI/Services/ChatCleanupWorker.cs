@@ -76,7 +76,7 @@ namespace ChatService.ChatAPI.Services
                             var nextSessionId = await redisService.GetNextInWaitingQueueAsync();
                             if (nextSessionId != null)
                             {
-                                await mongoService.CapNhatStaffPhienAsync(Guid.Parse(nextSessionId), phien.StaffID);
+                                await mongoService.CapNhatThongTinStaffPhienAsync(Guid.Parse(nextSessionId), phien.StaffID, phien.StaffHoTen ?? "Tư vấn viên");
                                 await mongoService.CapNhatTrangThaiPhienAsync(Guid.Parse(nextSessionId), "ACTIVE", "QUEUE");
                                 await redisService.IncreaseStaffWorkloadAsync(phien.StaffID);
 

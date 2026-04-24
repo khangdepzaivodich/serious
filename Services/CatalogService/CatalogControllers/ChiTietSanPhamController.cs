@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using CatalogService.DTOs;
 using CatalogService.CatalogServices.Interfaces;
 
@@ -10,10 +10,39 @@ namespace CatalogService.CatalogControllers
     public class ChiTietSanPhamController : ControllerBase
     {
         private readonly IChiTietSanPhamService _service;
+        private readonly CatalogServices.IPhotoService _photoService;
 
-        public ChiTietSanPhamController(IChiTietSanPhamService service)
+        public ChiTietSanPhamController(IChiTietSanPhamService service, CatalogServices.IPhotoService photoService)
         {
             _service = service;
+            _photoService = photoService;
+        }
+
+        [HttpPost("{id}/photo")]
+        public async Task<IActionResult> AddPhoto(Guid id, IFormFile file)
+        {
+            var variant = await _service.GetByIdAsync(id);
+            if (variant == null) return NotFound("Variant not found");
+
+            var result = await _photoService.AddPhotoAsync(file);
+
+            if (result.Error != null) return BadRequest(result.Error.Message);
+
+            // Cập nhật URL ảnh vào Variant
+            // Giả sử service có hàm cập nhật ảnh, nếu không mình sẽ sửa trực tiếp hoặc dùng UpdateAsync
+            var updateDto = new ChiTietSanPhamCreateUpdateDTO
+            {
+                MaSP = variant.MaSP,
+                Mau = variant.Mau,
+                KichCo = variant.KichCo,
+                Gia = variant.Gia,
+                SoLuong = variant.SoLuong,
+                Anh = result.SecureUrl.AbsoluteUri
+            };
+
+            await _service.UpdateAsync(id, updateDto);
+
+            return Ok(new { url = result.SecureUrl.AbsoluteUri });
         }
 
         [HttpGet("by-sanpham/{maSP}")]

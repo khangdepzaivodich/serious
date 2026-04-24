@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace IdentityService.Identity.API.Models
@@ -28,6 +28,10 @@ namespace IdentityService.Identity.API.Models
         public string? TrangThai { get; set; } // string -> string
 
         public DateTime NgayThangNamSinh { get; set; } // date -> DateTime
+
+        public string? Avatar { get; set; }
+
+        public string? GioiTinh { get; set; }
 
         public DateTime LastActiveAt { get; set; } // datetime -> DateTime
 
