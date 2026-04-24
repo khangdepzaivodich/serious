@@ -1,5 +1,6 @@
 ﻿using IdentityService.Identity.API.DTOs;
 using IdentityService.Identity.API.IdentityServices.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityService.Identity.API.IdentityControllers
@@ -60,6 +61,27 @@ namespace IdentityService.Identity.API.IdentityControllers
                 success = result.Success,
                 message = result.Message
             });
+        }
+
+        [HttpGet("whoami")]
+        [Authorize]
+        public IActionResult WhoAmI()
+        {
+            return Ok(new
+            {
+                UserId = User.FindFirst("sub")?.Value,
+                Email = User.FindFirst("email")?.Value,
+                Name = User.FindFirst("name")?.Value,
+                Role = User.FindFirst("role")?.Value
+            });
+        }
+
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin")]
+        public IActionResult CheckAdmin()
+        {           
+            return Ok(new { success = true, message = "User is Admin" });
         }
     }
 }
