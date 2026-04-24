@@ -24,7 +24,9 @@ namespace IdentityService.Migrations
                     VaiTro = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TrangThai = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NgayThangNamSinh = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    LastActiveAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    LastActiveAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ResetToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ResetTokenExpires = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
