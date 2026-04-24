@@ -3,6 +3,9 @@ using CatalogService.Data;
 using Microsoft.EntityFrameworkCore;
 using CatalogService.DTOs;
 using CatalogService.Models;
+using System.Globalization;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CatalogService.CatalogServices.Implementations
 {
@@ -112,6 +115,58 @@ namespace CatalogService.CatalogServices.Implementations
                     Anh = ct.Anh ?? ""
                 })]
             };
+        }
+        public async Task<SanPhamDTO?> GetSanPhamBySlugAsync(string slug)
+        {
+            var sanPhams = await _context.SanPhams
+                .Include(x => x.ChiTietSanPhams)
+                .Include(x => x.DanhMuc!)
+                    .ThenInclude(dm => dm!.LoaiDanhMuc)
+                .ToListAsync();
+
+            var sp = sanPhams.FirstOrDefault(x => GenerateSlug(x.TenSP) == slug);
+
+            if (sp == null)
+                return null;
+
+            return new SanPhamDTO
+            {
+                MaSP = sp.MaSP,
+                MaDM = sp.MaDM,
+                TenSP = sp.TenSP,
+                MoTa = sp.MoTa ?? "",
+                ChiTietSanPhams = [.. sp.ChiTietSanPhams.Select(ct => new ChiTietSanPhamDTO
+                {
+                    MaCTSP = ct.MaCTSP,
+                    Mau = ct.Mau,
+                    KichCo = ct.KichCo,
+                    Gia = ct.Gia,
+                    SoLuong = ct.SoLuong,
+                    Anh = ct.Anh ?? ""
+                })]
+            };
+        }
+
+        private static string GenerateSlug(string text)
+        {
+            var normalized = text.Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder();
+            foreach (var c in normalized)
+            {
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    sb.Append(c);
+                }
+            }
+            var result = sb.ToString().Normalize(NormalizationForm.FormC);
+            result = result.Replace("đ", "d").Replace("Đ", "d");
+            result = result.ToLowerInvariant();
+            result = Regex.Replace(result, @"[^a-z0-9\s-]", "");
+            result = Regex.Replace(result, @"[\s]+", "-");
+            result = Regex.Replace(result, @"-{2,}", "-");
+            result = result.Trim('-');
+            return result;
         }
 
         public async Task<SanPhamDTO> CreateSanPhamAsync(SanPhamCreateDTO createDto)

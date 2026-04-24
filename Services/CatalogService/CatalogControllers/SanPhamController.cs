@@ -43,6 +43,17 @@ namespace CatalogService.CatalogControllers
             return Ok(sanPham);
         }
 
+        // GET: api/sanpham/slug/{slug}
+        [HttpGet("slug/{slug}")]
+        public async Task<IActionResult> GetBySlug(string slug)
+        {
+            var sanPham = await _service.GetSanPhamBySlugAsync(slug);
+            if (sanPham == null)
+                return NotFound();
+
+            return Ok(sanPham);
+        }
+
         // POST: api/sanpham
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] SanPhamCreateDTO dto)
