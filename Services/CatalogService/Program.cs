@@ -5,6 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 100 * 1024 * 1024; // 100MB
+});
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new Exception("Connection string not found");
 
@@ -16,6 +21,8 @@ builder.Services.AddScoped<ISanPhamService, SanPhamService>();
 builder.Services.AddScoped<ILoaiDanhMucService, LoaiDanhMucService>();
 builder.Services.AddScoped<IDanhMucService, DanhMucService>();
 builder.Services.AddScoped<IChiTietSanPhamService, ChiTietSanPhamService>();
+builder.Services.AddScoped<CatalogService.CatalogServices.IPhotoService, CatalogService.CatalogServices.PhotoService>();
+builder.Services.Configure<CatalogService.Helpers.CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 
 builder.Services.AddCors(options =>
 {

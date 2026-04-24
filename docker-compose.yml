@@ -59,6 +59,9 @@ services:
       SmtpSettings__Password: ${SMTP_PASSWORD}
       SmtpSettings__From: ${SMTP_FROM}
       SmtpSettings__FromDisplayName: ${SMTP_FROM_NAME}
+      CloudinarySettings__CloudName: ${CLOUDINARY_CLOUD_NAME}
+      CloudinarySettings__ApiKey: ${CLOUDINARY_API_KEY}
+      CloudinarySettings__ApiSecret: ${CLOUDINARY_API_SECRET}
     networks:
       - backend
 
@@ -75,6 +78,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: ${CATALOG_DB}
+      CloudinarySettings__CloudName: ${CLOUDINARY_CLOUD_NAME}
+      CloudinarySettings__ApiKey: ${CLOUDINARY_API_KEY}
+      CloudinarySettings__ApiSecret: ${CLOUDINARY_API_SECRET}
     networks:
       - backend
 

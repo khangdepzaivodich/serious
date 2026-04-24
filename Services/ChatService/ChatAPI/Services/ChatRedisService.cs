@@ -159,5 +159,18 @@ namespace ChatService.ChatAPI.Services
             var name = await _db.StringGetAsync(key);
             return name.HasValue ? name.ToString() : null;
         }
+
+        public async Task SetStaffAvatarAsync(string staffId, string avatar)
+        {
+            var key = $"staff:avatar:{staffId}";
+            await _db.StringSetAsync(key, avatar, TimeSpan.FromHours(12));
+        }
+
+        public async Task<string?> GetStaffAvatarAsync(string staffId)
+        {
+            var key = $"staff:avatar:{staffId}";
+            var avatar = await _db.StringGetAsync(key);
+            return avatar.HasValue ? avatar.ToString() : null;
+        }
     }
 }

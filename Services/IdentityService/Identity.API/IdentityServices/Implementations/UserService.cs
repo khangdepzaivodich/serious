@@ -1,4 +1,4 @@
-﻿using IdentityService.Identity.API.Data;
+using IdentityService.Identity.API.Data;
 using IdentityService.Identity.API.DTOs;
 using IdentityService.Identity.API.IdentityServices.Interfaces;
 using IdentityService.Identity.API.Models;
@@ -26,20 +26,23 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
             return Convert.ToBase64String(hash);
         }
 
-        public async Task<object?> GetMe(Guid userId)
+        public async Task<UserDto?> GetMe(Guid userId)
         {
             return await _context.Users
                 .Where(x => x.MaTK == userId)
-                .Select(x => new
+                .Select(x => new UserDto
                 {
-                    x.MaTK,
-                    x.Email,
-                    x.HoTen,
-                    x.SoDienThoai,
-                    x.DiaChi,
-                    x.VaiTro,
-                    x.TrangThai,
-                    x.LastActiveAt
+                    MaTK = x.MaTK,
+                    Email = x.Email,
+                    HoTen = x.HoTen,
+                    SoDienThoai = x.SoDienThoai,
+                    DiaChi = x.DiaChi,
+                    VaiTro = x.VaiTro,
+                    TrangThai = x.TrangThai,
+                    NgaySinh = x.NgayThangNamSinh,
+                    Avatar = x.Avatar,
+                    GioiTinh = x.GioiTinh,
+                    LastActiveAt = x.LastActiveAt
                 })
                 .FirstOrDefaultAsync();
         }
@@ -52,6 +55,9 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
             user.HoTen = request.HoTen ?? user.HoTen;
             user.SoDienThoai = request.SoDienThoai ?? user.SoDienThoai;
             user.DiaChi = request.DiaChi ?? user.DiaChi;
+            user.NgayThangNamSinh = request.NgaySinh ?? user.NgayThangNamSinh;
+            user.Avatar = request.Avatar ?? user.Avatar;
+            user.GioiTinh = request.GioiTinh ?? user.GioiTinh;
             user.LastActiveAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -73,7 +79,7 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
             return (true, "Password changed");
         }
 
-        public async Task<(int total, object data)> GetAll(int page, int pageSize)
+        public async Task<(int total, IEnumerable<UserDto> data)> GetAll(int page, int pageSize)
         {
             var query = _context.Users.AsNoTracking();
 
@@ -83,36 +89,42 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
                 .OrderByDescending(x => x.LastActiveAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(x => new
+                .Select(x => new UserDto
                 {
-                    x.MaTK,
-                    x.Email,
-                    x.HoTen,
-                    x.SoDienThoai,
-                    x.VaiTro,
-                    x.TrangThai,
-                    x.LastActiveAt
+                    MaTK = x.MaTK,
+                    Email = x.Email,
+                    HoTen = x.HoTen,
+                    SoDienThoai = x.SoDienThoai,
+                    DiaChi = x.DiaChi,
+                    VaiTro = x.VaiTro,
+                    TrangThai = x.TrangThai,
+                    NgaySinh = x.NgayThangNamSinh,
+                    Avatar = x.Avatar,
+                    GioiTinh = x.GioiTinh,
+                    LastActiveAt = x.LastActiveAt
                 })
                 .ToListAsync();
 
             return (total, data);
         }
 
-        public async Task<object?> GetById(Guid id)
+        public async Task<UserDto?> GetById(Guid id)
         {
             return await _context.Users
                 .Where(x => x.MaTK == id)
-                .Select(x => new
+                .Select(x => new UserDto
                 {
-                    x.MaTK,
-                    x.Email,
-                    x.HoTen,
-                    x.SoDienThoai,
-                    x.DiaChi,
-                    x.VaiTro,
-                    x.TrangThai,
-                    x.NgayThangNamSinh,
-                    x.LastActiveAt
+                    MaTK = x.MaTK,
+                    Email = x.Email,
+                    HoTen = x.HoTen,
+                    SoDienThoai = x.SoDienThoai,
+                    DiaChi = x.DiaChi,
+                    VaiTro = x.VaiTro,
+                    TrangThai = x.TrangThai,
+                    NgaySinh = x.NgayThangNamSinh,
+                    Avatar = x.Avatar,
+                    GioiTinh = x.GioiTinh,
+                    LastActiveAt = x.LastActiveAt
                 })
                 .FirstOrDefaultAsync();
         }

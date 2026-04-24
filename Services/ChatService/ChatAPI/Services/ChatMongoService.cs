@@ -67,7 +67,7 @@ namespace ChatService.ChatAPI.Services
         }
 
         // Nâng cấp phiên từ GUEST → USER (khi khách login)
-        public async Task UpgradePhienAsync(Guid idPhien, Guid userId, string hoTen)
+        public async Task UpgradePhienAsync(Guid idPhien, Guid userId, string hoTen, string? avatar = null)
         {
             var update = Builders<PhienTroChuyen>.Update
                 .Set(p => p.ClientType, "USER")
@@ -75,19 +75,26 @@ namespace ChatService.ChatAPI.Services
                 .Set(p => p.HoTen, hoTen)
                 .Set(p => p.LastTime, DateTime.UtcNow);
 
+            if (!string.IsNullOrEmpty(avatar))
+            {
+                update = update.Set(p => p.Avatar, avatar);
+            }
+
             await _phienCollection.UpdateOneAsync(p => p.Id == idPhien, update);
         }
 
-        // Reassign nhân viên
-        public async Task CapNhatStaffPhienAsync(Guid idPhien, string staffId)
+        // Cập nhật thông tin nhân viên đảm nhận (ID và Tên)
+        public async Task CapNhatThongTinStaffPhienAsync(Guid idPhien, string staffId, string staffName, string? staffAvatar = null)
         {
-            var update = Builders<PhienTroChuyen>.Update.Set(p => p.StaffID, staffId);
-            await _phienCollection.UpdateOneAsync(p => p.Id == idPhien, update);
-        }
+            var update = Builders<PhienTroChuyen>.Update
+                .Set(p => p.StaffID, staffId)
+                .Set(p => p.StaffHoTen, staffName);
 
-        public async Task CapNhatStaffNamePhienAsync(Guid idPhien, string staffName)
-        {
-            var update = Builders<PhienTroChuyen>.Update.Set(p => p.StaffHoTen, staffName);
+            if (!string.IsNullOrEmpty(staffAvatar))
+            {
+                update = update.Set(p => p.StaffAvatar, staffAvatar);
+            }
+
             await _phienCollection.UpdateOneAsync(p => p.Id == idPhien, update);
         }
 
