@@ -30,7 +30,6 @@ builder.Services.AddControllers();
 // =====================
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-    //options.UseInMemoryDatabase("IdentitySVDb_Memory")); // chạy db trên ram ko cần cài sql để test api
 
 // =====================
 // JWT Settings
@@ -38,6 +37,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+
+// =====================
+// SMTP Settings & Email service
+// =====================
+var smtpSection = builder.Configuration.GetSection("SmtpSettings");
+builder.Services.Configure<SmtpSettings>(smtpSection);
+builder.Services.AddSingleton<IEmailService, EmailService>();
+// Note: EmailService takes IOptions<SmtpSettings> in its constructor
 
 // =====================
 // DI Services
@@ -90,7 +97,6 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
     await IdentitySeeder.SeedDefaultAdminAsync(dbContext);
-    //dbContext.Database.EnsureCreated();
 }
 
 // =====================

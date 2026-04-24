@@ -37,5 +37,29 @@ namespace IdentityService.Identity.API.IdentityControllers
 
             return Ok(result.Data);
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
+        {
+            var result = await _authService.ForgotPassword(request);
+
+            return StatusCode(result.Success ? 200 : 400, new
+            {
+                success = result.Success,
+                message = result.Message
+            });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+        {
+            var result = await _authService.ResetPassword(request);
+
+            return StatusCode(result.Success ? 200 : 400, new
+            {
+                success = result.Success,
+                message = result.Message
+            });
+        }
     }
 }

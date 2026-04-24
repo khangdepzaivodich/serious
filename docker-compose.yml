@@ -1,4 +1,7 @@
+version: "3.9"
+
 services:
+
   # =========================
   # SQL SERVER
   # =========================
@@ -6,7 +9,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sqlserver
     environment:
-      SA_PASSWORD: "YourStrong@123"
+      SA_PASSWORD: ${SA_PASSWORD}
       ACCEPT_EULA: "Y"
     ports:
       - "1433:1433"
@@ -50,8 +53,15 @@ services:
     depends_on:
       - sqlserver
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=IdentityDb;User Id=sa;Password=YourStrong@123;TrustServerCertificate=True;ConnectRetryCount=5;ConnectRetryInterval=10;
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: ${IDENTITY_DB}
+      JwtSettings__Secret: ${JWT_SECRET}
+      SmtpSettings__Host: ${SMTP_HOST}
+      SmtpSettings__Port: ${SMTP_PORT}
+      SmtpSettings__Username: ${SMTP_USERNAME}
+      SmtpSettings__Password: ${SMTP_PASSWORD}
+      SmtpSettings__From: ${SMTP_FROM}
+      SmtpSettings__FromDisplayName: ${SMTP_FROM_NAME}
     networks:
       - backend
 
@@ -66,8 +76,8 @@ services:
     depends_on:
       - sqlserver
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=CatalogDb;User Id=sa;Password=YourStrong@123;TrustServerCertificate=True;ConnectRetryCount=5;ConnectRetryInterval=10;
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: ${CATALOG_DB}
     networks:
       - backend
 
@@ -82,8 +92,8 @@ services:
     depends_on:
       - sqlserver
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=OrderingDb;User Id=sa;Password=YourStrong@123;TrustServerCertificate=True;ConnectRetryCount=5;ConnectRetryInterval=10;
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: ${ORDERING_DB}
     networks:
       - backend
 
@@ -98,8 +108,8 @@ services:
     depends_on:
       - redis
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - Redis__ConnectionString=redis:6379,abortConnect=false
+      ASPNETCORE_ENVIRONMENT: Development
+      Redis__ConnectionString: ${REDIS_CONNECTION}
     networks:
       - backend
 
@@ -114,14 +124,14 @@ services:
     depends_on:
       - mongodb
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - Mongo__ConnectionString=mongodb://mongodb:27017
-      - Mongo__Database=DiscountDb
+      ASPNETCORE_ENVIRONMENT: Development
+      Mongo__ConnectionString: ${MONGO_CONNECTION}
+      Mongo__Database: ${MONGO_DB_DISCOUNT}
     networks:
       - backend
 
   # =========================
-  # CHAT SERVICE (MONGO)
+  # CHAT SERVICE (MONGO + REDIS)
   # =========================
   chat-service:
     build:
@@ -130,16 +140,17 @@ services:
       - "7229:8080"
     depends_on:
       - mongodb
+      - redis
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - Mongo__ConnectionString=mongodb://mongodb:27017
-      - Mongo__Database=ChatDb
-      - Redis__ConnectionString=redis:6379,abortConnect=false
+      ASPNETCORE_ENVIRONMENT: Development
+      Mongo__ConnectionString: ${MONGO_CONNECTION}
+      Mongo__Database: ${MONGO_DB_CHAT}
+      Redis__ConnectionString: ${REDIS_CONNECTION}
     networks:
       - backend
 
 # =========================
-# NETWORK
+# NETWORKS
 # =========================
 networks:
   backend:

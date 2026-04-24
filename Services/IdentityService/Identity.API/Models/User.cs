@@ -30,5 +30,9 @@ namespace IdentityService.Identity.API.Models
         public DateTime NgayThangNamSinh { get; set; } // date -> DateTime
 
         public DateTime LastActiveAt { get; set; } // datetime -> DateTime
+
+        // Password reset fields
+        public string? ResetToken { get; set; }
+        public DateTime? ResetTokenExpires { get; set; }
     }
 }
