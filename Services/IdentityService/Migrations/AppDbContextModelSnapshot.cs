@@ -69,7 +69,7 @@ namespace IdentityService.Migrations
 
                     b.HasKey("MaTK");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 #pragma warning restore 612, 618
         }
