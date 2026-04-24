@@ -29,6 +29,8 @@ namespace ChatService.ChatAPI.Models
 
         public string HoTen { get; set; } = string.Empty; // Tên khách hàng (rỗng nếu GUEST)
 
+        public string StaffHoTen { get; set; } = string.Empty; // Tên nhân viên hỗ trợ
+
         public int UnreadCount { get; set; } = 0;
     }
 }

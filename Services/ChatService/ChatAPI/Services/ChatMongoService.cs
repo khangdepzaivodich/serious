@@ -11,7 +11,8 @@ namespace ChatService.ChatAPI.Services
 
         public ChatMongoService(IConfiguration config)
         {
-            var connectionString = config.GetConnectionString("MongoDb");
+            var connectionString = config["Mongo:ConnectionString"] 
+                                 ?? config.GetConnectionString("MongoDb");
             var mongoClient = new MongoClient(connectionString);
             var mongoDatabase = mongoClient.GetDatabase("ChatStoreDB");
 
@@ -36,7 +37,7 @@ namespace ChatService.ChatAPI.Services
             var update = Builders<PhienTroChuyen>.Update
                 .Set(p => p.LastMessage, lastMessage)
                 .Set(p => p.LastTime, DateTime.UtcNow)
-                .Inc(p => p.UnreadCount, 1); // Tăng đếm chưa đọc +1
+                .Inc(p => p.UnreadCount, 1);
 
             await _phienCollection.UpdateOneAsync(p => p.Id == idPhien, update);
         }
@@ -49,13 +50,20 @@ namespace ChatService.ChatAPI.Services
         }
 
         // Cập nhật trạng thái phiên (ACTIVE / CLOSED)
-        public async Task CapNhatTrangThaiPhienAsync(Guid idPhien, string trangThai)
+        public async Task<bool> CapNhatTrangThaiPhienAsync(Guid idPhien, string trangThaiMoi, string? trangThaiCu = null)
         {
+            var filter = Builders<PhienTroChuyen>.Filter.Eq(p => p.Id, idPhien);
+            if (!string.IsNullOrEmpty(trangThaiCu))
+            {
+                filter &= Builders<PhienTroChuyen>.Filter.Eq(p => p.TrangThai, trangThaiCu);
+            }
+
             var update = Builders<PhienTroChuyen>.Update
-                .Set(p => p.TrangThai, trangThai)
+                .Set(p => p.TrangThai, trangThaiMoi)
                 .Set(p => p.LastTime, DateTime.UtcNow);
 
-            await _phienCollection.UpdateOneAsync(p => p.Id == idPhien, update);
+            var result = await _phienCollection.UpdateOneAsync(filter, update);
+            return result.ModifiedCount > 0;
         }
 
         // Nâng cấp phiên từ GUEST → USER (khi khách login)
@@ -67,6 +75,19 @@ namespace ChatService.ChatAPI.Services
                 .Set(p => p.HoTen, hoTen)
                 .Set(p => p.LastTime, DateTime.UtcNow);
 
+            await _phienCollection.UpdateOneAsync(p => p.Id == idPhien, update);
+        }
+
+        // Reassign nhân viên
+        public async Task CapNhatStaffPhienAsync(Guid idPhien, string staffId)
+        {
+            var update = Builders<PhienTroChuyen>.Update.Set(p => p.StaffID, staffId);
+            await _phienCollection.UpdateOneAsync(p => p.Id == idPhien, update);
+        }
+
+        public async Task CapNhatStaffNamePhienAsync(Guid idPhien, string staffName)
+        {
+            var update = Builders<PhienTroChuyen>.Update.Set(p => p.StaffHoTen, staffName);
             await _phienCollection.UpdateOneAsync(p => p.Id == idPhien, update);
         }
 
@@ -87,9 +108,18 @@ namespace ChatService.ChatAPI.Services
         public async Task GuiTinNhanAsync(HoiThoai tinNhan)
         {
             await _hoiThoaiCollection.InsertOneAsync(tinNhan);
-
-            // Tự động đẩy update phiên chat
             await CapNhatThongTinPhienAsync(tinNhan.MaPhien, tinNhan.NoiDung);
+        }
+
+        // --- LẤY DANH SÁCH PHIÊN IDLE (Dùng cho Worker) ---
+        public async Task<List<PhienTroChuyen>> GetIdleSessionsAsync(TimeSpan threshold)
+        {
+            var cutoff = DateTime.UtcNow - threshold;
+            var filter = Builders<PhienTroChuyen>.Filter.And(
+                Builders<PhienTroChuyen>.Filter.Eq(p => p.TrangThai, "ACTIVE"),
+                Builders<PhienTroChuyen>.Filter.Lt(p => p.LastTime, cutoff)
+            );
+            return await _phienCollection.Find(filter).ToListAsync();
         }
     }
 }

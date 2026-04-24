@@ -8,6 +8,9 @@ builder.Services.AddSingleton<ChatService.ChatAPI.Services.ChatMongoService>();
 
 builder.Services.AddSingleton<ChatService.ChatAPI.Services.ChatRedisService>();
 
+// Đăng ký Worker
+builder.Services.AddHostedService<ChatService.ChatAPI.Services.ChatCleanupWorker>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -21,7 +24,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 
 // [TÍNH NĂNG MỚI] KÍCH HOẠT SignalR WebSockets! ---
-builder.Services.AddSignalR().AddStackExchangeRedis(builder.Configuration.GetConnectionString("Redis")!);
+var redisConn = builder.Configuration["Redis:ConnectionString"] 
+                ?? builder.Configuration.GetConnectionString("Redis") 
+                ?? "redis:6379,abortConnect=false";
+
+builder.Services.AddSignalR().AddStackExchangeRedis(redisConn);
 
 // -------------------------------------------------
 

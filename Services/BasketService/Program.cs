@@ -18,8 +18,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// Cấu hình Redis từ appsettings
-var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379,ssl=False,abortConnect=False";
+// Cấu hình Redis: Ưu tiên lấy từ biến môi trường Redis:ConnectionString (Docker Compose)
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"] 
+                            ?? builder.Configuration.GetConnectionString("Redis") 
+                            ?? "redis:6379,abortConnect=false";
+
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
     ConnectionMultiplexer.Connect(redisConnectionString));
 

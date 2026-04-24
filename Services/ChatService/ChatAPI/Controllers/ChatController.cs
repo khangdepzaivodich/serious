@@ -30,6 +30,28 @@ namespace ChatService.ChatAPI.Controllers
             return Ok(phienList);
         }
 
+        // Lấy chi tiết 1 phiên trò chuyện
+        [HttpGet("chat-sessions/{idPhien}")]
+        public async Task<ActionResult<PhienTroChuyen>> GetPhien(Guid idPhien)
+        {
+            var phien = await _chatService.GetPhienByIdAsync(idPhien);
+            if (phien == null) return NotFound();
+
+            // FALLBACK: Nếu phiên đã gán Staff nhưng chưa có tên hiển thị trong DB
+            if (string.IsNullOrEmpty(phien.StaffHoTen) && !string.IsNullOrEmpty(phien.StaffID) && phien.StaffID != "BOT")
+            {
+                var nameFromRedis = await _redisService.GetStaffNameAsync(phien.StaffID);
+                if (!string.IsNullOrEmpty(nameFromRedis))
+                {
+                    phien.StaffHoTen = nameFromRedis;
+                    // Tiện tay cập nhật ngược lại vào MongoDB để lần sau không phải tra cứu nữa
+                    await _chatService.CapNhatStaffNamePhienAsync(phien.Id, nameFromRedis);
+                }
+            }
+
+            return Ok(phien);
+        }
+
         // Lấy lịch sử hội thoại của 1 phiên
         [HttpGet("messages/{idPhien}")]
         public async Task<ActionResult<List<HoiThoai>>> GetHoiThoai(Guid idPhien)
