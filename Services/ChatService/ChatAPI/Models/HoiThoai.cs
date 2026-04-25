@@ -34,5 +34,8 @@ namespace ChatService.ChatAPI.Models
         // Chống duplicate realtime
         [BsonRepresentation(BsonType.String)]
         public Guid ClientID { get; set; } = Guid.NewGuid();
+
+        // True: Chỉ Staff thấy với nhau (Zendesk internal note), False: Khách thấy được
+        public bool IsInternalNote { get; set; } = false;
     }
 }

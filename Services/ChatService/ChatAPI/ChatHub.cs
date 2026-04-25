@@ -38,10 +38,8 @@ namespace ChatService.ChatAPI
 
         // --- CÁC HÀM XỬ LÝ KHÁCH HÀNG / NGƯỜI DÙNG ---
 
-        // Khách hoặc User bấm tạo chat mới
         public async Task<string> CreateNewChatSession(string userId, string clientType)
         {
-            // Nếu là USER đã đăng nhập, kiểm tra xem có phiên ACTIVE nào chưa
             if (clientType == "USER")
             {
                 if (!Guid.TryParse(userId, out var userGuid))
@@ -50,7 +48,7 @@ namespace ChatService.ChatAPI
                 }
 
                 var existingSessions = await _chatService.GetDanhSachPhienByUserIdAsync(userGuid);
-                var activeSession = existingSessions.FirstOrDefault(p => p.TrangThai == "ACTIVE");
+                var activeSession = existingSessions.FirstOrDefault(p => p.TrangThai == "ASSIGNED" || p.TrangThai == "WAITING");
                 
                 if (activeSession != null)
                 {
@@ -58,26 +56,15 @@ namespace ChatService.ChatAPI
                 }
             }
 
-            var assignedStaffId = await _redisService.AssignLeastBusyStaffAsync();
-            var status = assignedStaffId != null ? "ACTIVE" : "QUEUE";
-            string? staffName = null;
-            string? staffAvatar = null;
-            if (assignedStaffId != null)
-            {
-                staffName = await _redisService.GetStaffNameAsync(assignedStaffId);
-                staffAvatar = await _redisService.GetStaffAvatarAsync(assignedStaffId);
-            }
-
-            if (staffName == "Administrator") staffName = "Nhân viên";
             var phienMoi = new PhienTroChuyen 
             {
                 Id = Guid.NewGuid(),
                 UserID = clientType == "GUEST" ? CreateGuidFromString(userId) : (Guid.TryParse(userId, out var guid) ? guid : Guid.Empty),
                 ClientType = clientType,
-                StaffID = assignedStaffId ?? "BOT",
-                StaffHoTen = staffName ?? (assignedStaffId != null ? "Tư vấn viên" : null),
-                StaffAvatar = staffAvatar ?? (assignedStaffId != null ? GetDefaultAvatar(staffName ?? "Staff") : ""),
-                TrangThai = status,
+                StaffID = "",
+                StaffHoTen = "",
+                StaffAvatar = "",
+                TrangThai = "WAITING",
                 LastMessage = "Bắt đầu cuộc hội thoại",
                 LastTime = DateTime.UtcNow,
                 UnreadCount = 0
@@ -86,16 +73,8 @@ namespace ChatService.ChatAPI
             await _chatService.TaoPhienAsync(phienMoi);
             await Groups.AddToGroupAsync(Context.ConnectionId, phienMoi.Id.ToString());
 
-            if (phienMoi.StaffID == "BOT")
-            {
-                await _redisService.AddToWaitingQueueAsync(phienMoi.Id.ToString());
-                await Clients.Caller.SendAsync("SessionQueued");
-            }
-            // Gửi thông báo cho nhân viên nếu có online
-            if(assignedStaffId != null) 
-            {
-                await Clients.Group("AdminGroup").SendAsync("NewChatAssigned", phienMoi);
-            }
+            // Gửi thông báo cho AdminGroup để nhân viên biết có chat mới cần Pick
+            await Clients.Group("AdminGroup").SendAsync("NewChatWaiting", phienMoi);
 
             return phienMoi.Id.ToString(); 
         }
@@ -151,87 +130,23 @@ namespace ChatService.ChatAPI
                 tinNhan.SenderAvatar = GetDefaultAvatar(!string.IsNullOrEmpty(tinNhan.SenderName) ? tinNhan.SenderName : "User");
             }
 
+            var phien = await _chatService.GetPhienByIdAsync(tinNhan.MaPhien);
+            if (phien == null) return;
+
             if (tinNhan.SenderType != "STAFF")
             {
-                var phien = await _chatService.GetPhienByIdAsync(tinNhan.MaPhien);
-                if (phien == null) return;
-
-                // --- LOGIC REASSIGN NẾU ĐANG GÁN CHO BOT (QUEUE) ---
-                if (phien.StaffID == "BOT" || phien.TrangThai == "QUEUE")
-                {
-                    var staffId = await _redisService.AssignLeastBusyStaffAsync();
-                    if (staffId != null)
-                    {
-                        var staffName = await _redisService.GetStaffNameAsync(staffId);
-                        var staffAvatar = await _redisService.GetStaffAvatarAsync(staffId);
-                        await _chatService.CapNhatThongTinStaffPhienAsync(phien.Id, staffId, staffName ?? "Tư vấn viên", staffAvatar);
-                        await _chatService.CapNhatTrangThaiPhienAsync(phien.Id, "ACTIVE", "QUEUE");
-
-                        phien.StaffID = staffId; 
-                        phien.TrangThai = "ACTIVE";
-
-                        await Clients.Group(phien.Id.ToString()).SendAsync("SessionAssigned", staffId, staffName ?? "Tư vấn viên");
-                        await Clients.Group("AdminGroup").SendAsync("NewChatAssigned", phien);
-                    }
-                    else
-                    {
-                        // VẪN KHÔNG CÓ STAFF -> Bot trả lời tự động (theo yêu cầu USER: Chỉ trả lời khi user nhắn tin)
-                        var botMessage = new HoiThoai
-                        {
-                            MaPhien = phien.Id,
-                            SenderID = Guid.Empty,
-                            NoiDung = "Đã nhận được tin nhắn , xin vui lòng đợi 1 lát",
-                            SenderName = "Bot tự động",
-                            SenderType = "STAFF",
-                            SenderAvatar = "https://ui-avatars.com/api/?name=Bot&background=0b3b72&color=fff",
-                            ThoiGianGui = DateTime.UtcNow.AddMilliseconds(500),
-                            TrangThai = "sent"
-                        };
-                        await _chatService.GuiTinNhanAsync(botMessage);
-                        await Clients.Group(phien.Id.ToString()).SendAsync("ReceiveNewMessage", botMessage);
-                    }
-                }
-
-                // --- LOGIC REASSIGN NẾU STAFF OFFLINE > 1 NGÀY ---
-                if (!string.IsNullOrEmpty(phien.StaffID) && phien.StaffID != "BOT")
-                {
-                    var isOnline = await _redisService.IsUserOnlineAsync(phien.StaffID);
-                    if (!isOnline)
-                    {
-                        var lastSeen = await _redisService.GetStaffLastSeenAsync(phien.StaffID);
-                        // Nếu offline > 1 ngày (hoặc chưa bao giờ seen) thì tìm người mới
-                        if (lastSeen == null || DateTime.UtcNow - lastSeen > TimeSpan.FromDays(1))
-                        {
-                            var newStaffId = await _redisService.AssignLeastBusyStaffAsync();
-                            if (newStaffId != null)
-                            {
-                                var newStaffName = await _redisService.GetStaffNameAsync(newStaffId);
-                                var newStaffAvatar = await _redisService.GetStaffAvatarAsync(newStaffId);
-                                await _chatService.CapNhatThongTinStaffPhienAsync(phien.Id, newStaffId, newStaffName ?? "Tư vấn viên", newStaffAvatar);
-                                    
-                                // Trừ workload cho staff cũ
-                                await _redisService.DecreaseStaffWorkloadAsync(phien.StaffID);
-
-                                phien.StaffID = newStaffId;
-                                await Clients.Group("AdminGroup").SendAsync("SessionReassigned", phien.Id.ToString(), newStaffId);
-                            }
-                        }
-                    }
-                }
-
+                // Mở lại session nếu bị đóng
                 if (phien.TrangThai == "CLOSED")
                 {
-                    var isSuccess = await _chatService.CapNhatTrangThaiPhienAsync(tinNhan.MaPhien, "ACTIVE", "CLOSED");
-                    if (isSuccess && !string.IsNullOrEmpty(phien.StaffID) && phien.StaffID != "BOT")
+                    // Nếu đã từng có staff gán thì quay lại ASSIGNED, nếu chưa thì quay về WAITING
+                    var nextStatus = string.IsNullOrEmpty(phien.StaffID) ? "WAITING" : "ASSIGNED";
+                    var isSuccess = await _chatService.CapNhatTrangThaiPhienAsync(tinNhan.MaPhien, nextStatus, "CLOSED");
+                    if (isSuccess)
                     {
-                        await _redisService.IncreaseStaffWorkloadAsync(phien.StaffID);
-                        await Clients.Group("AdminGroup").SendAsync("SessionReopened", tinNhan.MaPhien.ToString());
+                        await Clients.Group("AdminGroup").SendAsync("SessionReopened", tinNhan.MaPhien.ToString(), nextStatus);
                     }
                 }
-            }
 
-            if (tinNhan.SenderType != "STAFF")
-            {
                 // KIỂM TRA MAPPING
                 var (mappedUserId, mappedHoTen) = await _redisService.GetSessionMappingAsync(tinNhan.MaPhien.ToString());
                 if (mappedUserId != null)
@@ -248,18 +163,41 @@ namespace ChatService.ChatAPI
                 var staffName = await _redisService.GetStaffNameAsync(staffIdStr);
                 var staffAvatar = await _redisService.GetStaffAvatarAsync(staffIdStr);
                 
-                if (!string.IsNullOrEmpty(staffName))
+                if (!string.IsNullOrEmpty(staffName) && phien.StaffID != staffIdStr && !tinNhan.IsInternalNote)
                 {
+                    // Tự động gán/Takeover nếu nhân viên nhắn trực tiếp (không phải internal note)
                     await _chatService.CapNhatThongTinStaffPhienAsync(tinNhan.MaPhien, staffIdStr, staffName, staffAvatar);
-                    // Thông báo cho Khách biết tên nhân viên vừa nhắn (để cập nhật Header real-time)
+                    await _chatService.CapNhatTrangThaiPhienAsync(tinNhan.MaPhien, "ASSIGNED");
                     await Clients.Group(tinNhan.MaPhien.ToString()).SendAsync("StaffNameUpdated", staffName);
+                    await Clients.Group("AdminGroup").SendAsync("SessionAssigned", tinNhan.MaPhien.ToString(), staffIdStr, staffName);
                 }
             }
 
             // Lưu tin nhắn xuống DB (MongoDB)
             await _chatService.GuiTinNhanAsync(tinNhan);
-            await Clients.Group(tinNhan.MaPhien.ToString()).SendAsync("ReceiveNewMessage", tinNhan);
+
+            // Broadcast: Khách không nhận được Internal Note
+            if (!tinNhan.IsInternalNote)
+            {
+                await Clients.Group(tinNhan.MaPhien.ToString()).SendAsync("ReceiveNewMessage", tinNhan);
+            }
+            
+            // Nhân viên lúc nào cũng nhận được
             await Clients.Group("AdminGroup").SendAsync("ReceiveNewMessage", tinNhan);
+        }
+
+        // Staff Take Over hoặc Assign
+        public async Task AssignSession(string maPhien, string staffId)
+        {
+            var staffName = await _redisService.GetStaffNameAsync(staffId);
+            var staffAvatar = await _redisService.GetStaffAvatarAsync(staffId);
+            
+            var phienGuid = Guid.Parse(maPhien);
+            await _chatService.CapNhatThongTinStaffPhienAsync(phienGuid, staffId, staffName ?? "Tư vấn viên", staffAvatar);
+            await _chatService.CapNhatTrangThaiPhienAsync(phienGuid, "ASSIGNED");
+
+            await Clients.Group(maPhien).SendAsync("StaffNameUpdated", staffName);
+            await Clients.Group("AdminGroup").SendAsync("SessionAssigned", maPhien, staffId, staffName);
         }
 
         // Staff bấm nút "Kết thúc phiên"
@@ -267,29 +205,12 @@ namespace ChatService.ChatAPI
         {
             var phienGuid = Guid.Parse(maPhien);
 
-            var isSuccess = await _chatService.CapNhatTrangThaiPhienAsync(phienGuid, "CLOSED", "ACTIVE");
+            // Không cần biết trước đó là ASSIGNED hay WAITING, cứ set sang CLOSED
+            var isSuccess = await _chatService.CapNhatTrangThaiPhienAsync(phienGuid, "CLOSED");
             if (isSuccess)
             {
-                await _redisService.DecreaseStaffWorkloadAsync(staffId);
                 await Clients.Group("AdminGroup").SendAsync("SessionClosed", maPhien);
                 await Clients.Group(maPhien).SendAsync("SessionClosed", maPhien);
-
-                // --- HÀNG ĐỢI: Bốc người tiếp theo trong hàng đợi nếu có ---
-                var nextSessionId = await _redisService.GetNextInWaitingQueueAsync();
-                if (nextSessionId != null)
-                {
-                    var staffName = await _redisService.GetStaffNameAsync(staffId);
-
-                    // Gán ngay cho Staff vừa rảnh tay này
-                    var staffAvatar = await _redisService.GetStaffAvatarAsync(staffId);
-                    await _chatService.CapNhatThongTinStaffPhienAsync(Guid.Parse(nextSessionId), staffId, staffName ?? "Tư vấn viên", staffAvatar);
-                    await _chatService.CapNhatTrangThaiPhienAsync(Guid.Parse(nextSessionId), "ACTIVE"); // Chuyển từ QUEUE sang ACTIVE
-                    await _redisService.IncreaseStaffWorkloadAsync(staffId);
-
-                    // Thông báo cho cả 2 bên
-                    await Clients.Group(nextSessionId).SendAsync("SessionAssigned", staffId, staffName ?? "Tư vấn viên");
-                    await Clients.Group("AdminGroup").SendAsync("NewChatAssigned", nextSessionId);
-                }
             }
         }
 
@@ -297,47 +218,18 @@ namespace ChatService.ChatAPI
         public async Task ReopenSession(string maPhien, string staffId)
         {
             var phienGuid = Guid.Parse(maPhien);
-            var isSuccess = await _chatService.CapNhatTrangThaiPhienAsync(phienGuid, "ACTIVE", "CLOSED");
+            var isSuccess = await _chatService.CapNhatTrangThaiPhienAsync(phienGuid, "ASSIGNED", "CLOSED");
             if (isSuccess)
             {
-                await _redisService.IncreaseStaffWorkloadAsync(staffId);
-                await Clients.Group("AdminGroup").SendAsync("SessionReopened", maPhien);
+                await Clients.Group("AdminGroup").SendAsync("SessionReopened", maPhien, "ASSIGNED");
                 await Clients.Group(maPhien).SendAsync("SessionReopened", maPhien);
             }
         }
 
         private async Task ReassignWaitingSessionsAsync()
         {
-            while (true)
-            {
-                var nextSessionId = await _redisService.GetNextInWaitingQueueAsync();
-                if (string.IsNullOrWhiteSpace(nextSessionId))
-                {
-                    return;
-                }
-
-                var session = await _chatService.GetPhienByIdAsync(Guid.Parse(nextSessionId));
-                if (session == null || !string.Equals(session.TrangThai, "QUEUE", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                var staffId = await _redisService.AssignLeastBusyStaffAsync();
-                if (string.IsNullOrWhiteSpace(staffId))
-                {
-                    await _redisService.AddToWaitingQueueAsync(nextSessionId);
-                    return;
-                }
-
-                var staffName = await _redisService.GetStaffNameAsync(staffId);
-                var staffAvatar = await _redisService.GetStaffAvatarAsync(staffId);
-
-                await _chatService.CapNhatThongTinStaffPhienAsync(session.Id, staffId, staffName ?? "Tư vấn viên", staffAvatar);
-                await _chatService.CapNhatTrangThaiPhienAsync(session.Id, "ACTIVE", "QUEUE");
-
-                await Clients.Group(nextSessionId).SendAsync("SessionAssigned", staffId, staffName ?? "Tư vấn viên");
-                await Clients.Group("AdminGroup").SendAsync("NewChatAssigned", session);
-            }
+            // Do logic mới dùng WAITING và Assign thủ công nên không cần tự động Reassign nữa
+            await Task.CompletedTask;
         }
     }
 }

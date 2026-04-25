@@ -45,6 +45,7 @@ services:
   identity-service:
     build:
       context: ./Services/IdentityService
+    restart: always
     ports:
       - "7093:8080"
     depends_on:
@@ -71,6 +72,7 @@ services:
   catalog-service:
     build:
       context: ./Services/CatalogService
+    restart: always
     ports:
       - "7103:8080"
     depends_on:
@@ -90,6 +92,7 @@ services:
   ordering-service:
     build:
       context: ./Services/OrderingService
+    restart: always
     ports:
       - "7076:8080"
     depends_on:
@@ -106,6 +109,7 @@ services:
   basket-service:
     build:
       context: ./Services/BasketService
+    restart: always
     ports:
       - "7021:8080"
     depends_on:
@@ -124,6 +128,7 @@ services:
   discount-service:
     build:
       context: ./Services/DiscountService
+    restart: always
     ports:
       - "7002:8080"
     depends_on:
@@ -141,6 +146,7 @@ services:
   chat-service:
     build:
       context: ./Services/ChatService
+    restart: always
     ports:
       - "7229:8080"
     depends_on:
