@@ -77,6 +77,7 @@ namespace CatalogService.CatalogServices.Implementations
                 MaSP = sp.MaSP,
                 MaDM = sp.MaDM,
                 TenSP = sp.TenSP,
+                Slug = sp.Slug,
                 MoTa = sp.MoTa ?? "",
                 LuotBan = sp.LuotBan,
                 ChiTietSanPhams = [.. sp.ChiTietSanPhams.Select(ct => new ChiTietSanPhamDTO
@@ -115,6 +116,7 @@ namespace CatalogService.CatalogServices.Implementations
                 MaSP = sp.MaSP,
                 MaDM = sp.MaDM,
                 TenSP = sp.TenSP,
+                Slug = sp.Slug,
                 MoTa = sp.MoTa ?? "",
                 LuotBan = sp.LuotBan,
                 ChiTietSanPhams = [.. sp.ChiTietSanPhams.Select(ct => new ChiTietSanPhamDTO
@@ -130,13 +132,11 @@ namespace CatalogService.CatalogServices.Implementations
         }
         public async Task<SanPhamDTO?> GetSanPhamBySlugAsync(string slug)
         {
-            var sanPhams = await _context.SanPhams
+            var sp = await _context.SanPhams
                 .Include(x => x.ChiTietSanPhams)
                 .Include(x => x.DanhMuc!)
                     .ThenInclude(dm => dm!.LoaiDanhMuc)
-                .ToListAsync();
-
-            var sp = sanPhams.FirstOrDefault(x => GenerateSlug(x.TenSP) == slug);
+                .FirstOrDefaultAsync(x => x.Slug == slug);
 
             if (sp == null)
                 return null;
@@ -146,6 +146,7 @@ namespace CatalogService.CatalogServices.Implementations
                 MaSP = sp.MaSP,
                 MaDM = sp.MaDM,
                 TenSP = sp.TenSP,
+                Slug = sp.Slug,
                 MoTa = sp.MoTa ?? "",
                 LuotBan = sp.LuotBan,
                 ChiTietSanPhams = [.. sp.ChiTietSanPhams.Select(ct => new ChiTietSanPhamDTO
@@ -189,6 +190,7 @@ namespace CatalogService.CatalogServices.Implementations
                 MaSP = Guid.NewGuid(),
                 MaDM = createDto.MaDM,
                 TenSP = createDto.TenSP,
+                Slug = GenerateSlug(createDto.TenSP),
                 MoTa = createDto.MoTa
             };
 
@@ -200,6 +202,7 @@ namespace CatalogService.CatalogServices.Implementations
                 MaSP = newSanPham.MaSP,
                 MaDM = newSanPham.MaDM,
                 TenSP = newSanPham.TenSP,
+                Slug = newSanPham.Slug,
                 MoTa = newSanPham.MoTa,
                 LuotBan = newSanPham.LuotBan
             };
@@ -212,6 +215,7 @@ namespace CatalogService.CatalogServices.Implementations
 
             existingSanPham.MaDM = updateDto.MaDM;
             existingSanPham.TenSP = updateDto.TenSP;
+            existingSanPham.Slug = GenerateSlug(updateDto.TenSP);
             existingSanPham.MoTa = updateDto.MoTa;
 
             _context.SanPhams.Update(existingSanPham);

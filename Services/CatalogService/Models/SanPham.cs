@@ -17,6 +17,10 @@ namespace CatalogService.Models
         [StringLength(255)]
         public required string TenSP { get; set; }
 
+        [Required]
+        [StringLength(255)]
+        public required string Slug { get; set; }
+
         public string? MoTa { get; set; }
 
         public int LuotBan { get; set; } = 0;
