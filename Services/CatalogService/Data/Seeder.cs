@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using CatalogService.Models;
 
@@ -66,6 +66,7 @@ namespace CatalogService.Data
                                     MaSP = sp.MaSP,
                                     MaDM = sp.MaDM,
                                     TenSP = sp.TenSP,
+                                    Slug = GenerateSlug(sp.TenSP),
                                     MoTa = sp.MoTa
                                 };
 
@@ -138,6 +139,28 @@ namespace CatalogService.Data
             public decimal Gia { get; set; }
             public int SoLuong { get; set; }
             public string? Anh { get; set; }
+        }
+        private static string GenerateSlug(string title)
+        {
+            if (string.IsNullOrEmpty(title)) return "";
+            var slug = title.ToLower().Trim();
+            
+            // Thay thế ký tự có dấu
+            string[] findText = { "á", "à", "ả", "ã", "ạ", "â", "ấ", "ầ", "ẩ", "ẫ", "ậ", "ă", "ắ", "ằ", "ẳ", "ẵ", "ặ", "đ", "é", "è", "ẻ", "ẽ", "ẹ", "ê", "ế", "ề", "ể", "ễ", "ệ", "í", "ì", "ỉ", "ĩ", "ị", "ó", "ò", "ỏ", "õ", "ọ", "ô", "ố", "ồ", "ổ", "ỗ", "ộ", "ơ", "ớ", "ờ", "ở", "ỡ", "ợ", "ú", "ù", "ủ", "ũ", "ụ", "ư", "ứ", "ừ", "ử", "ữ", "ự", "ý", "ỳ", "ỷ", "ỹ", "ỵ" };
+            string[] replaceText = { "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "d", "e", "e", "e", "e", "e", "e", "e", "e", "e", "e", "e", "i", "i", "i", "i", "i", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "u", "u", "u", "u", "u", "u", "u", "u", "u", "u", "u", "y", "y", "y", "y", "y" };
+            for (int i = 0; i < findText.Length; i++)
+            {
+                slug = slug.Replace(findText[i], replaceText[i]);
+            }
+
+            // Xóa ký tự đặc biệt
+            slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\s-]", "");
+            // Thay khoảng trắng bằng gạch ngang
+            slug = System.Text.RegularExpressions.Regex.Replace(slug, @"\s+", "-").Trim();
+            // Xóa nhiều gạch ngang liên tiếp
+            slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-");
+            
+            return slug;
         }
     }
 }
