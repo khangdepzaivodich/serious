@@ -48,11 +48,19 @@ namespace ChatService.ChatAPI
                 }
 
                 var existingSessions = await _chatService.GetDanhSachPhienByUserIdAsync(userGuid);
-                var activeSession = existingSessions.FirstOrDefault(p => p.TrangThai == "ASSIGNED" || p.TrangThai == "WAITING");
+                // Lấy phiên mới nhất (bất kể trạng thái)
+                var latestSession = existingSessions.OrderByDescending(p => p.ThoiGianTao).FirstOrDefault();
                 
-                if (activeSession != null)
+                if (latestSession != null)
                 {
-                    return activeSession.Id.ToString();
+                    // Nếu phiên cũ đã đóng, mình mở lại nó luôn để giữ mạch hội thoại
+                    if (latestSession.TrangThai == "CLOSED")
+                    {
+                        await _chatService.CapNhatTrangThaiPhienAsync(latestSession.Id, "WAITING");
+                        // Reset cả staff để có thể phân phối lại nếu cần
+                        await _chatService.CapNhatThongTinStaffPhienAsync(latestSession.Id, "", "");
+                    }
+                    return latestSession.Id.ToString();
                 }
             }
 
@@ -102,6 +110,22 @@ namespace ChatService.ChatAPI
         public async Task JoinChatSession(string maPhien)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, maPhien);
+
+            // Nếu phiên này đang đóng mà User lại Join vào (mở khung chat), 
+            // có thể họ muốn chat tiếp -> Tự động mở lại phiên.
+            var phienGuid = Guid.Parse(maPhien);
+            var phien = await _chatService.GetPhienByIdAsync(phienGuid);
+            if (phien != null && phien.TrangThai == "CLOSED")
+            {
+                await _chatService.CapNhatTrangThaiPhienAsync(phienGuid, "WAITING");
+                await _chatService.CapNhatThongTinStaffPhienAsync(phienGuid, "", "");
+                
+                // Cập nhật lại thông tin mới nhất để gửi cho Admin
+                phien.TrangThai = "WAITING";
+                phien.StaffID = "";
+                phien.StaffHoTen = "";
+                await Clients.Group("AdminGroup").SendAsync("NewChatWaiting", phien);
+            }
         }
 
         // Staff đánh dấu đã đọc
