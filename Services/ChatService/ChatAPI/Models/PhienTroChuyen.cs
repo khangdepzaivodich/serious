@@ -16,8 +16,8 @@ namespace ChatService.ChatAPI.Models
 
         public DateTime ThoiGianTao { get; set; } = DateTime.UtcNow;
 
-        // ACTIVE || CLOSED
-        public string TrangThai { get; set; } = "ACTIVE";
+        // WAITING || ASSIGNED || CLOSED
+        public string TrangThai { get; set; } = "WAITING";
 
         public string StaffID { get; set; } = string.Empty; // Staff hỗ trợ phiên chat này
 

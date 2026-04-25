@@ -7,5 +7,6 @@ namespace ChatService.ChatAPI.DTOs
         public string SenderType { get; set; } = "user";
         public string NoiDung { get; set; } = string.Empty;
         public Guid? ClientID { get; set; }
+        public bool IsInternalNote { get; set; } = false;
     }
 }

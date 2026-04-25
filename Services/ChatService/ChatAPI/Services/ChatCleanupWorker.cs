@@ -59,32 +59,15 @@ namespace ChatService.ChatAPI.Services
                     foreach (var phien in idleSessions)
                     {
                         // 2. Chuyển trạng thái sang CLOSED
-                        var isSuccess = await mongoService.CapNhatTrangThaiPhienAsync(phien.Id, "CLOSED", "ACTIVE");
+                        var isSuccess = await mongoService.CapNhatTrangThaiPhienAsync(phien.Id, "CLOSED", "ASSIGNED");
                         
                         if (isSuccess && !string.IsNullOrEmpty(phien.StaffID) && phien.StaffID != "BOT")
                         {
-                            // 3. Giảm workload cho Staff
-                            await redisService.DecreaseStaffWorkloadAsync(phien.StaffID);
-
-                            // 4. Thông báo cho Client (nếu còn kết nối) và Admin
+                            // 3. Thông báo cho Client (nếu còn kết nối) và Admin
                             await hubContext.Clients.Group(phien.Id.ToString()).SendAsync("SessionClosed", phien.Id.ToString());
                             await hubContext.Clients.Group("AdminGroup").SendAsync("SessionClosed", phien.Id.ToString());
 
                             _logger.LogInformation($"Auto-closed idle session: {phien.Id} for Staff: {phien.StaffID}");
-
-                            // 5. HÀNG ĐỢI: Bốc người tiếp theo gán cho Staff này luôn
-                            var nextSessionId = await redisService.GetNextInWaitingQueueAsync();
-                            if (nextSessionId != null)
-                            {
-                                await mongoService.CapNhatThongTinStaffPhienAsync(Guid.Parse(nextSessionId), phien.StaffID, phien.StaffHoTen ?? "Tư vấn viên");
-                                await mongoService.CapNhatTrangThaiPhienAsync(Guid.Parse(nextSessionId), "ACTIVE", "QUEUE");
-                                await redisService.IncreaseStaffWorkloadAsync(phien.StaffID);
-
-                                await hubContext.Clients.Group(nextSessionId).SendAsync("SessionAssigned", phien.StaffID);
-                                await hubContext.Clients.Group("AdminGroup").SendAsync("NewChatAssigned", nextSessionId);
-                                
-                                _logger.LogInformation($"Auto-assigned waiting session {nextSessionId} to Staff {phien.StaffID}");
-                            }
                         }
                     }
                 }

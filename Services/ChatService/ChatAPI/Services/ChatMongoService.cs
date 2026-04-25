@@ -126,7 +126,7 @@ namespace ChatService.ChatAPI.Services
         {
             var cutoff = DateTime.UtcNow - threshold;
             var filter = Builders<PhienTroChuyen>.Filter.And(
-                Builders<PhienTroChuyen>.Filter.Eq(p => p.TrangThai, "ACTIVE"),
+                Builders<PhienTroChuyen>.Filter.Eq(p => p.TrangThai, "ASSIGNED"),
                 Builders<PhienTroChuyen>.Filter.Lt(p => p.LastTime, cutoff)
             );
             return await _phienCollection.Find(filter).ToListAsync();
