@@ -59,16 +59,26 @@ namespace ChatService.ChatAPI
             var phienMoi = new PhienTroChuyen 
             {
                 Id = Guid.NewGuid(),
-                UserID = clientType == "GUEST" ? CreateGuidFromString(userId) : (Guid.TryParse(userId, out var guid) ? guid : Guid.Empty),
-                ClientType = clientType,
-                StaffID = "",
-                StaffHoTen = "",
-                StaffAvatar = "",
+                UserID = clientType == "USER" ? Guid.Parse(userId) : Guid.Empty,
+                ThoiGianTao = DateTime.UtcNow,
                 TrangThai = "WAITING",
-                LastMessage = "Bắt đầu cuộc hội thoại",
                 LastTime = DateTime.UtcNow,
+                ClientType = clientType,
                 UnreadCount = 0
             };
+
+            if (clientType == "GUEST")
+            {
+                // Reset số thứ tự theo ngày: chat:guest_counter:20240425
+                var dateKey = DateTime.UtcNow.ToString("yyyyMMdd");
+                var guestNumber = await _redisService.GetNextGuestNumberWithDateAsync(dateKey);
+                phienMoi.HoTen = $"Khách #{guestNumber}";
+            }
+            else
+            {
+                phienMoi.HoTen = "User"; // Sẽ được cập nhật sau
+                phienMoi.Avatar = "";
+            }
 
             await _chatService.TaoPhienAsync(phienMoi);
             await Groups.AddToGroupAsync(Context.ConnectionId, phienMoi.Id.ToString());

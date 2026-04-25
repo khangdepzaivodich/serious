@@ -172,5 +172,16 @@ namespace ChatService.ChatAPI.Services
             var avatar = await _db.StringGetAsync(key);
             return avatar.HasValue ? avatar.ToString() : null;
         }
+
+        public async Task<long> GetNextGuestNumberWithDateAsync(string dateKey)
+        {
+            var key = $"chat:guest_counter:{dateKey}";
+            var count = await _db.StringIncrementAsync(key);
+            if (count == 1)
+            {
+                await _db.KeyExpireAsync(key, TimeSpan.FromDays(2)); // Tự xóa sau 2 ngày
+            }
+            return count;
+        }
     }
 }

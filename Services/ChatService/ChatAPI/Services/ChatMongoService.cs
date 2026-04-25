@@ -131,5 +131,28 @@ namespace ChatService.ChatAPI.Services
             );
             return await _phienCollection.Find(filter).ToListAsync();
         }
+
+        // Tìm các phiên khách (GUEST) đã im lặng quá lâu
+        public async Task<List<PhienTroChuyen>> GetIdleGuestSessionsAsync(TimeSpan threshold)
+        {
+            var cutoff = DateTime.UtcNow - threshold;
+            var filter = Builders<PhienTroChuyen>.Filter.And(
+                Builders<PhienTroChuyen>.Filter.Eq(p => p.ClientType, "GUEST"),
+                Builders<PhienTroChuyen>.Filter.Ne(p => p.TrangThai, "CLOSED"),
+                Builders<PhienTroChuyen>.Filter.Lt(p => p.LastTime, cutoff)
+            );
+            return await _phienCollection.Find(filter).ToListAsync();
+        }
+
+        // Xóa hoàn toàn phiên chat và tin nhắn liên quan
+        public async Task<bool> XoaPhienChatAsync(Guid idPhien)
+        {
+            // 1. Xóa tất cả tin nhắn trong phiên
+            await _hoiThoaiCollection.DeleteManyAsync(h => h.MaPhien == idPhien);
+            
+            // 2. Xóa phiên chat
+            var result = await _phienCollection.DeleteOneAsync(p => p.Id == idPhien);
+            return result.DeletedCount > 0;
+        }
     }
 }

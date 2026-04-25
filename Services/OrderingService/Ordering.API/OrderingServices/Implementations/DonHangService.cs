@@ -28,6 +28,37 @@ namespace OrderingService.Ordering.API.OrderingServices.Implementations
             if (request.ChiTietDonHangs == null || request.ChiTietDonHangs.Count == 0)
                 throw new ArgumentException("At least one order item is required.", nameof(request));
 
+            decimal subtotal = request.ChiTietDonHangs.Sum(x => x.SoLuong * x.Gia_LuuTru);
+            decimal discountAmount = 0;
+
+            if (request.MaGG.HasValue)
+            {
+                try
+                {
+                    var discountClient = _httpClientFactory.CreateClient("DiscountService");
+                    var discount = await discountClient.GetFromJsonAsync<MaGiamGiaDto>($"api/MaGiamGia/{request.MaGG}");
+                    if (discount != null && subtotal >= (discount.DonHangToiThieu ?? 0) && discount.HanSuDung >= DateTime.UtcNow)
+                    {
+                        if (discount.Loai == "PhanTram")
+                        {
+                            discountAmount = subtotal * discount.SoTien / 100m;
+                            if (discount.GiaTriGiamToiDa.HasValue && discount.GiaTriGiamToiDa.Value > 0)
+                            {
+                                discountAmount = Math.Min(discountAmount, discount.GiaTriGiamToiDa.Value);
+                            }
+                        }
+                        else if (discount.Loai == "Tien")
+                        {
+                            discountAmount = Math.Min(discount.SoTien, subtotal);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ORDERING] Failed to fetch discount {request.MaGG}: {ex.Message}");
+                }
+            }
+
             var donHang = new DonHang
             {
                 MaTK = request.MaTK,
@@ -35,7 +66,7 @@ namespace OrderingService.Ordering.API.OrderingServices.Implementations
                 SoDienThoai = request.SoDienThoai,
                 MaGG = request.MaGG,
                 DiaChiGiaoHang = request.DiaChiGiaoHang,
-                TongTien = request.ChiTietDonHangs.Sum(x => x.SoLuong * x.Gia_LuuTru),
+                TongTien = Math.Max(subtotal - discountAmount, 0),
                 ChiTietDonHangs = request.ChiTietDonHangs.Select(x => new ChiTietDonHang
                 {
                     MaCTSP = x.MaCTSP,
