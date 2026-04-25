@@ -67,13 +67,11 @@ namespace ChatService.ChatAPI.Controllers
             if (!Guid.TryParse(userId, out var userGuid)) return BadRequest("Invalid UserId");
 
             var sessions = await _chatService.GetDanhSachPhienByUserIdAsync(userGuid);
-            var activeSession = sessions
-                .Where(p => p.TrangThai == "WAITING" || p.TrangThai == "ASSIGNED")
-                .OrderByDescending(p => p.ClientType == "USER") 
-                .ThenByDescending(p => p.LastTime)
+            var latestSession = sessions
+                .OrderByDescending(p => p.ThoiGianTao)
                 .FirstOrDefault();
             
-            return Ok(activeSession);
+            return Ok(latestSession);
         }
 
         // [API CHÍNH THỨC] - Tạo 1 Phiên Chat Mới
