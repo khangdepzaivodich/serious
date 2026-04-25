@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using CatalogService.DTOs;
 using CatalogService.CatalogServices.Interfaces;
 namespace CatalogService.CatalogControllers
@@ -6,7 +6,7 @@ namespace CatalogService.CatalogControllers
 
     [Route("api/[controller]")]
     [ApiController]
-    // [Authorize(Roles = "Admin")] // Enable this to restrict category management to Admins
+    // [Authorize(Roles = "ADMIN")] // Enable this to restrict category management to Admins
     public class DanhMucController : ControllerBase
     {
         private readonly IDanhMucService _service;

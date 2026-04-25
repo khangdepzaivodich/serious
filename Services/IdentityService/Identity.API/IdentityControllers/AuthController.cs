@@ -1,4 +1,4 @@
-﻿using IdentityService.Identity.API.DTOs;
+using IdentityService.Identity.API.DTOs;
 using IdentityService.Identity.API.IdentityServices.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -77,7 +77,7 @@ namespace IdentityService.Identity.API.IdentityControllers
         }
 
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         [HttpGet("admin")]
         public IActionResult CheckAdmin()
         {           

@@ -27,6 +27,9 @@ namespace ChatService.ChatAPI.Services
         public async Task<List<PhienTroChuyen>> GetDanhSachPhienAsync() =>
             await _phienCollection.Find(_ => true).ToListAsync();
 
+        public async Task<List<PhienTroChuyen>> GetDanhSachPhienByUserIdAsync(Guid userId) =>
+            await _phienCollection.Find(p => p.UserID == userId && p.ClientType == "USER").ToListAsync();
+
         // Tạo 1 phiên chat mới
         public async Task TaoPhienAsync(PhienTroChuyen phien) =>
             await _phienCollection.InsertOneAsync(phien);
