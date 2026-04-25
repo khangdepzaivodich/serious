@@ -41,7 +41,7 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
                 MatKhauHash = HashPassword(request.MatKhau),
                 HoTen = request.HoTen,
                 DiaChi = request.DiaChi ?? "",
-                VaiTro = "User",
+                VaiTro = "CUSTOMER",
                 TrangThai = "Active",
                 NgayThangNamSinh = request.NgayThangNamSinh,
                 LastActiveAt = DateTime.UtcNow
@@ -72,7 +72,7 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
                 Token = token,
                 UserId = user.MaTK,
                 Email = user.Email,
-                Role = user.VaiTro ?? "User",
+                Role = user.VaiTro ?? "CUSTOMER",
                 HoTen = user.HoTen,
                 Avatar = string.IsNullOrWhiteSpace(user.Avatar) ? null : user.Avatar
             };
@@ -147,7 +147,7 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
                 new Claim(ClaimTypes.NameIdentifier, user.MaTK.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.HoTen ?? ""),
-                new Claim(ClaimTypes.Role, user.VaiTro ?? "User")
+                new Claim(ClaimTypes.Role, user.VaiTro ?? "CUSTOMER")
             };
 
             var key = new SymmetricSecurityKey(

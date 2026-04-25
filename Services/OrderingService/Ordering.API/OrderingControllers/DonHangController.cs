@@ -64,7 +64,7 @@ namespace OrderingService.Ordering.API.OrderingControllers
         }
 
         [HttpGet]
-        // [Authorize(Roles = "Staff")]
+        // [Authorize(Roles = "STAFF")]
         public async Task<IActionResult> GetAll(int page = 1, int pageSize = 20)
         {
             var result = await _donHangService.GetAllDonHangsAsync(page, pageSize);

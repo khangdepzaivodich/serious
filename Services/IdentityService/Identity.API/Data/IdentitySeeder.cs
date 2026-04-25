@@ -25,7 +25,7 @@ namespace IdentityService.Identity.API.Data
                     MatKhauHash = adminPasswordHash,
                     HoTen = "Administrator",
                     DiaChi = "System",
-                    VaiTro = "Admin",
+                    VaiTro = "ADMIN",
                     TrangThai = "Active",
                     NgayThangNamSinh = new DateTime(2000, 1, 1),
                     LastActiveAt = DateTime.UtcNow
@@ -36,7 +36,7 @@ namespace IdentityService.Identity.API.Data
             else
             {
                 admin.MatKhauHash = adminPasswordHash;
-                admin.VaiTro = "Admin";
+                admin.VaiTro = "ADMIN";
                 admin.TrangThai = "Active";
                 admin.LastActiveAt = DateTime.UtcNow;
             }

@@ -44,10 +44,13 @@ namespace ChatService.ChatAPI
             // Nếu là USER đã đăng nhập, kiểm tra xem có phiên ACTIVE nào chưa
             if (clientType == "USER")
             {
-                var existingSessions = await _chatService.GetDanhSachPhienAsync();
-                var activeSession = existingSessions.FirstOrDefault(p => 
-                    p.UserID == Guid.Parse(userId) && 
-                    p.TrangThai == "ACTIVE");
+                if (!Guid.TryParse(userId, out var userGuid))
+                {
+                    throw new HubException("Invalid User ID format.");
+                }
+
+                var existingSessions = await _chatService.GetDanhSachPhienByUserIdAsync(userGuid);
+                var activeSession = existingSessions.FirstOrDefault(p => p.TrangThai == "ACTIVE");
                 
                 if (activeSession != null)
                 {
@@ -69,7 +72,7 @@ namespace ChatService.ChatAPI
             var phienMoi = new PhienTroChuyen 
             {
                 Id = Guid.NewGuid(),
-                UserID = clientType == "GUEST" ? CreateGuidFromString(userId) : Guid.Parse(userId),
+                UserID = clientType == "GUEST" ? CreateGuidFromString(userId) : (Guid.TryParse(userId, out var guid) ? guid : Guid.Empty),
                 ClientType = clientType,
                 StaffID = assignedStaffId ?? "BOT",
                 StaffHoTen = staffName ?? (assignedStaffId != null ? "Tư vấn viên" : null),

@@ -142,7 +142,7 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
                 MatKhauHash = HashPassword(request.Password),
                 HoTen = request.HoTen,
                 DiaChi = request.DiaChi ?? "",
-                VaiTro = request.VaiTro ?? "User",
+                VaiTro = request.VaiTro ?? "CUSTOMER",
                 TrangThai = "Active",
                 NgayThangNamSinh = request.NgayThangNamSinh,
                 LastActiveAt = DateTime.UtcNow

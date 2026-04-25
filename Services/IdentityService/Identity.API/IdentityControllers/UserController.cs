@@ -85,7 +85,7 @@ namespace IdentityService.Identity.API.IdentityControllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> GetAll(int page = 1, int pageSize = 20)
         {
             var result = await _service.GetAll(page, pageSize);
@@ -93,7 +93,7 @@ namespace IdentityService.Identity.API.IdentityControllers
         }
 
         [HttpGet("{id:guid}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var data = await _service.GetById(id);
@@ -102,7 +102,7 @@ namespace IdentityService.Identity.API.IdentityControllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Create(CreateUserRequest request)
         {
             var result = await _service.Create(request);
@@ -111,7 +111,7 @@ namespace IdentityService.Identity.API.IdentityControllers
         }
 
         [HttpPut("{id:guid}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Update(Guid id, UpdateUserByAdminRequest request)
         {
             var ok = await _service.UpdateByAdmin(id, request);
@@ -120,7 +120,7 @@ namespace IdentityService.Identity.API.IdentityControllers
         }
 
         [HttpDelete("{id:guid}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var ok = await _service.Delete(id);
@@ -129,7 +129,7 @@ namespace IdentityService.Identity.API.IdentityControllers
         }
 
         [HttpPut("{id:guid}/lock")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Lock(Guid id)
         {
             var ok = await _service.Lock(id);
@@ -138,7 +138,7 @@ namespace IdentityService.Identity.API.IdentityControllers
         }
 
         [HttpPut("{id:guid}/unlock")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Unlock(Guid id)
         {
             var ok = await _service.Unlock(id);
