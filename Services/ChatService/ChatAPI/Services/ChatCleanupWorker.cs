@@ -11,8 +11,9 @@ namespace ChatService.ChatAPI.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ChatCleanupWorker> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(5); // Kiểm tra mỗi 5 phút
-        private readonly TimeSpan _idleThreshold = TimeSpan.FromMinutes(30); // Ngưỡng 30 phút im lặng
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(2); // Kiểm tra thường xuyên hơn
+        private readonly TimeSpan _idleThreshold = TimeSpan.FromMinutes(30); // Ngưỡng cho Staff
+        private readonly TimeSpan _guestThreshold = TimeSpan.FromMinutes(15); // Ngưỡng 15 phút cho Khách
 
         public ChatCleanupWorker(IServiceProvider serviceProvider, ILogger<ChatCleanupWorker> logger)
         {
@@ -46,28 +47,39 @@ namespace ChatService.ChatAPI.Services
             using (var scope = _serviceProvider.CreateScope())
             {
                 var mongoService = scope.ServiceProvider.GetRequiredService<ChatMongoService>();
-                var redisService = scope.ServiceProvider.GetRequiredService<ChatRedisService>();
                 var hubContext = scope.ServiceProvider.GetRequiredService<IHubContext<ChatHub>>();
 
-                // 1. Tìm các phiên bị "treo" (ACTIVE mà LastTime > 30p)
+                // 1. XỬ LÝ PHIÊN KHÁCH (GUEST) - XÓA NẾU QUÁ 15P
+                var idleGuests = await mongoService.GetIdleGuestSessionsAsync(_guestThreshold);
+                if (idleGuests.Any())
+                {
+                    _logger.LogInformation($"Found {idleGuests.Count} idle GUEST sessions to delete.");
+                    foreach (var guest in idleGuests)
+                    {
+                        await mongoService.XoaPhienChatAsync(guest.Id);
+                        // Thông báo đóng cho client (nếu còn)
+                        await hubContext.Clients.Group(guest.Id.ToString()).SendAsync("SessionClosed", "GUEST_TIMEOUT");
+                        await hubContext.Clients.Group("AdminGroup").SendAsync("SessionClosed", guest.Id.ToString());
+                    }
+                }
+
+                // 2. XỬ LÝ PHIÊN STAFF (ASSIGNED) - ĐÓNG NẾU QUÁ 30P
                 var idleSessions = await mongoService.GetIdleSessionsAsync(_idleThreshold);
 
                 if (idleSessions.Any())
                 {
-                    _logger.LogInformation($"Found {idleSessions.Count} idle sessions to close.");
+                    _logger.LogInformation($"Found {idleSessions.Count} idle assigned sessions to close.");
 
                     foreach (var phien in idleSessions)
                     {
-                        // 2. Chuyển trạng thái sang CLOSED
                         var isSuccess = await mongoService.CapNhatTrangThaiPhienAsync(phien.Id, "CLOSED", "ASSIGNED");
                         
-                        if (isSuccess && !string.IsNullOrEmpty(phien.StaffID) && phien.StaffID != "BOT")
+                        if (isSuccess)
                         {
-                            // 3. Thông báo cho Client (nếu còn kết nối) và Admin
-                            await hubContext.Clients.Group(phien.Id.ToString()).SendAsync("SessionClosed", phien.Id.ToString());
+                            await hubContext.Clients.Group(phien.Id.ToString()).SendAsync("SessionClosed", "AUTO_IDLE");
                             await hubContext.Clients.Group("AdminGroup").SendAsync("SessionClosed", phien.Id.ToString());
 
-                            _logger.LogInformation($"Auto-closed idle session: {phien.Id} for Staff: {phien.StaffID}");
+                            _logger.LogInformation($"Auto-closed idle assigned session: {phien.Id}");
                         }
                     }
                 }

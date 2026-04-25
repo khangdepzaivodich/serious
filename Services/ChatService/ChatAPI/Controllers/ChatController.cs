@@ -60,6 +60,22 @@ namespace ChatService.ChatAPI.Controllers
             return Ok(msgs);
         }
 
+        // Lấy phiên chat mới nhất đang hoạt động của User
+        [HttpGet("latest-session/{userId}")]
+        public async Task<ActionResult<PhienTroChuyen?>> GetLatestActiveSession(string userId)
+        {
+            if (!Guid.TryParse(userId, out var userGuid)) return BadRequest("Invalid UserId");
+
+            var sessions = await _chatService.GetDanhSachPhienByUserIdAsync(userGuid);
+            var activeSession = sessions
+                .Where(p => p.TrangThai == "WAITING" || p.TrangThai == "ASSIGNED")
+                .OrderByDescending(p => p.ClientType == "USER") 
+                .ThenByDescending(p => p.LastTime)
+                .FirstOrDefault();
+            
+            return Ok(activeSession);
+        }
+
         // [API CHÍNH THỨC] - Tạo 1 Phiên Chat Mới
         [HttpPost("create-session")]
         public async Task<IActionResult> TaoPhien([FromBody] CreateSessionRequest request)
