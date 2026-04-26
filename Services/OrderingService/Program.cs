@@ -20,7 +20,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient("CatalogService", client =>
 {
-    client.BaseAddress = new Uri("http://catalog-service:8080/"); // URL of Catalog API in Docker
+    client.BaseAddress = new Uri("https://catalog-service:8080/"); // URL of Catalog API in Docker
 })
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {
@@ -29,7 +29,7 @@ builder.Services.AddHttpClient("CatalogService", client =>
 
 builder.Services.AddHttpClient("DiscountService", client =>
 {
-    client.BaseAddress = new Uri("http://discount-service:8080/"); // URL of Discount API in Docker
+    client.BaseAddress = new Uri("https://discount-service:8080/"); // URL of Discount API in Docker
 })
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {

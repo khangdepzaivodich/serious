@@ -19,7 +19,7 @@ namespace CatalogService.CatalogControllers
         }
 
         [HttpPost("{id}/photo")]
-        public async Task<IActionResult> AddPhoto(Guid id, IFormFile file)
+        public async Task<IActionResult> AddPhoto(Guid id, [FromForm] IFormFile file)
         {
             var variant = await _service.GetByIdAsync(id);
             if (variant == null) return NotFound("Variant not found");
