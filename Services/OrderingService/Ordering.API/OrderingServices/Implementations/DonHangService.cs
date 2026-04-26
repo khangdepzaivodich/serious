@@ -139,12 +139,31 @@ namespace OrderingService.Ordering.API.OrderingServices.Implementations
                         Quantity = x.SoLuong
                     }).ToList();
 
-                    // Gọi Catalog với isFullSync = false để CHỈ CỘNG DỒN thêm vào
+                    // Gọi Catalog với isFullSync = false để CHỈ CỘNG DỒN thêm vào lượt bán
                     await client.PostAsJsonAsync("api/SanPham/sync-sales-count?isFullSync=false", salesUpdates);
+
+                    // THÊM: Trừ số lượng tồn kho (Inventory decrement)
+                    Console.WriteLine($"[ORDERING] Decrementing stock for order {maDH}...");
+                    foreach (var item in donHang.ChiTietDonHangs)
+                    {
+                        try
+                        {
+                            // Catalog API: PATCH api/ChiTietSanPham/{id}/stock?change={-quantity}
+                            var stockResponse = await client.PatchAsync($"api/ChiTietSanPham/{item.MaCTSP}/stock?change={-item.SoLuong}", null);
+                            if (!stockResponse.IsSuccessStatusCode)
+                            {
+                                Console.WriteLine($"[ORDERING] Failed to update stock for variant {item.MaCTSP}: {stockResponse.StatusCode}");
+                            }
+                        }
+                        catch (Exception innerEx)
+                        {
+                            Console.WriteLine($"[ORDERING] Exception updating stock for variant {item.MaCTSP}: {innerEx.Message}");
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[ORDERING] Failed to auto-sync sales: {ex.Message}");
+                    Console.WriteLine($"[ORDERING] Failed to auto-sync sales/stock: {ex.Message}");
                 }
             }
 
