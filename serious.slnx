@@ -7,5 +7,6 @@
     <Project Path="Services/IdentityService/IdentityService.csproj" />
     <Project Path="Services/OrderingService/OrderingService.csproj" />
     <Project Path="Services/IdentityService.Tests/IdentityService.Tests.csproj" />
+    <Project Path="Services/CatalogService.Tests/CatalogService.Tests.csproj" />
   </Folder>
 </Solution>
