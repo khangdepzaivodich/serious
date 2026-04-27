@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Authorization;
 using ChatService.ChatAPI.Models;
 using ChatService.ChatAPI.Services;
 
@@ -23,6 +24,7 @@ namespace ChatService.ChatAPI
         // --- CÁC HÀM XỬ LÝ NHÂN VIÊN ---
 
         // Nhân viên đăng ký vào hàng đợi tư vấn
+        [Authorize(Roles = "STAFF")]
         public async Task RegisterStaff(string staffId, string staffName, string staffAvatar)
         {
             await _redisService.RegisterStaffOnlineAsync(staffId);
@@ -221,6 +223,7 @@ namespace ChatService.ChatAPI
         }
 
         // Staff Take Over hoặc Assign
+        [Authorize(Roles = "STAFF")]
         public async Task AssignSession(string maPhien, string staffId)
         {
             var staffName = await _redisService.GetStaffNameAsync(staffId);
@@ -235,6 +238,7 @@ namespace ChatService.ChatAPI
         }
 
         // Staff bấm nút "Kết thúc phiên"
+        [Authorize(Roles = "STAFF")]
         public async Task CloseSession(string maPhien, string staffId)
         {
             var phienGuid = Guid.Parse(maPhien);
@@ -249,6 +253,7 @@ namespace ChatService.ChatAPI
         }
 
         // Staff bấm nút "Mở lại phiên" thủ công
+        [Authorize(Roles = "STAFF")]
         public async Task ReopenSession(string maPhien, string staffId)
         {
             var phienGuid = Guid.Parse(maPhien);
