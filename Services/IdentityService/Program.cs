@@ -85,9 +85,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = jwtSettings.Issuer,
             ValidAudience = jwtSettings.Audience,
 
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSettings.Secret)
-            ),
+            IssuerSigningKey = GetIssuerSigningKey(jwtSettings),
 
             RoleClaimType = ClaimTypes.Role
         };
@@ -142,3 +140,16 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Helper để lấy Key
+static SecurityKey GetIssuerSigningKey(JwtSettings settings)
+{
+    if (string.IsNullOrEmpty(settings.RsaPublicKey))
+    {
+        throw new Exception("RSA Public Key is missing in configuration.");
+    }
+
+    var rsa = RSA.Create();
+    rsa.ImportRSAPublicKey(Convert.FromBase64String(settings.RsaPublicKey), out _);
+    return new RsaSecurityKey(rsa);
+}
