@@ -25,7 +25,6 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
             _jwt = jwtOptions.Value;
             _emailService = emailService;
             _frontendUrl = configuration["FrontendUrl"] ?? "";
-            Console.WriteLine("JWT Secret" + _jwt.Secret);
         }
 
         public async Task<(bool Success, string Message)> Register(RegisterRequest request)
