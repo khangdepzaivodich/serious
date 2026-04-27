@@ -153,7 +153,7 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
                 throw new Exception("RSA Private Key is missing in configuration.");
 
             var rsa = RSA.Create();
-            rsa.ImportRSAPrivateKey(Convert.FromBase64String(_jwt.RsaPrivateKey), out _);
+            rsa.ImportPkcs8PrivateKey(Convert.FromBase64String(_jwt.RsaPrivateKey), out _);
             var key = new RsaSecurityKey(rsa);
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);

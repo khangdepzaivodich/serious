@@ -124,6 +124,6 @@ static SecurityKey GetIssuerSigningKey(JwtSettings settings)
     }
 
     var rsa = RSA.Create();
-    rsa.ImportRSAPublicKey(Convert.FromBase64String(settings.RsaPublicKey), out _);
+    rsa.ImportSubjectPublicKeyInfo(Convert.FromBase64String(settings.RsaPublicKey), out _);
     return new RsaSecurityKey(rsa);
 }
