@@ -53,7 +53,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: ${IDENTITY_DB}
-      JwtSettings__Secret: ${JWT_SECRET}
+      JwtSettings__RsaPrivateKey: ${JWT_RSA_PRIVATE_KEY}
+      JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
       SmtpSettings__Host: ${SMTP_HOST}
       SmtpSettings__Port: ${SMTP_PORT}
       SmtpSettings__Username: ${SMTP_USERNAME}
@@ -83,6 +84,7 @@ services:
       CloudinarySettings__CloudName: ${CLOUDINARY_CLOUD_NAME}
       CloudinarySettings__ApiKey: ${CLOUDINARY_API_KEY}
       CloudinarySettings__ApiSecret: ${CLOUDINARY_API_SECRET}
+      JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
     networks:
       - backend
 
@@ -100,6 +102,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: ${ORDERING_DB}
+      JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
     networks:
       - backend
 
@@ -119,6 +122,7 @@ services:
       Redis__ConnectionString: ${REDIS_CONNECTION}
       ApiSettings__CatalogUrl: "http://catalog-service:8080"
       ApiSettings__IdentityUrl: "http://identity-service:8080"
+      JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
     networks:
       - backend
 
@@ -137,6 +141,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       Mongo__ConnectionString: ${MONGO_CONNECTION}
       Mongo__Database: ${MONGO_DB_DISCOUNT}
+      JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
     networks:
       - backend
 
@@ -157,6 +162,7 @@ services:
       Mongo__ConnectionString: ${MONGO_CONNECTION}
       Mongo__Database: ${MONGO_DB_CHAT}
       Redis__ConnectionString: ${REDIS_CONNECTION}
+      JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
     networks:
       - backend
 

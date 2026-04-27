@@ -25,7 +25,6 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
             _jwt = jwtOptions.Value;
             _emailService = emailService;
             _frontendUrl = configuration["FrontendUrl"] ?? "";
-            Console.WriteLine("JWT Secret" + _jwt.Secret);
         }
 
         public async Task<(bool Success, string Message)> Register(RegisterRequest request)
@@ -150,11 +149,14 @@ namespace IdentityService.Identity.API.IdentityServices.Implementations
                 new Claim(ClaimTypes.Role, user.VaiTro ?? "CUSTOMER")
             };
 
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_jwt.Secret));
+            if (string.IsNullOrEmpty(_jwt.RsaPrivateKey))
+                throw new Exception("RSA Private Key is missing in configuration.");
 
-            var creds = new SigningCredentials(
-                key, SecurityAlgorithms.HmacSha256);
+            var rsa = RSA.Create();
+            rsa.ImportRSAPrivateKey(Convert.FromBase64String(_jwt.RsaPrivateKey), out _);
+            var key = new RsaSecurityKey(rsa);
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
 
             var token = new JwtSecurityToken(
                 issuer: _jwt.Issuer,
