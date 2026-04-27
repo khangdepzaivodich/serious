@@ -2,6 +2,11 @@ using CatalogService.CatalogServices.Implementations;
 using CatalogService.CatalogServices.Interfaces;
 using CatalogService.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
+using System.Text;
+using CatalogService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +43,32 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// =====================
+// Authentication (RSA)
+// =====================
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
+builder.Services.AddSingleton(jwtSettings);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+
+            IssuerSigningKey = GetIssuerSigningKey(jwtSettings),
+            RoleClaimType = "role" // Hoặc ClaimTypes.Role tùy cách bạn đặt trong Identity
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -77,8 +108,22 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
+// Helper để lấy RSA Public Key cho việc xác thực
+static SecurityKey GetIssuerSigningKey(JwtSettings settings)
+{
+    if (string.IsNullOrEmpty(settings.RsaPublicKey))
+    {
+        throw new Exception("RSA Public Key is missing in CatalogService configuration.");
+    }
+
+    var rsa = RSA.Create();
+    rsa.ImportRSAPublicKey(Convert.FromBase64String(settings.RsaPublicKey), out _);
+    return new RsaSecurityKey(rsa);
+}
