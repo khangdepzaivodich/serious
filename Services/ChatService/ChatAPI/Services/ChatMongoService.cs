@@ -14,7 +14,8 @@ namespace ChatService.ChatAPI.Services
             var connectionString = config["Mongo:ConnectionString"] 
                                  ?? config.GetConnectionString("MongoDb");
             var mongoClient = new MongoClient(connectionString);
-            var mongoDatabase = mongoClient.GetDatabase("ChatStoreDB");
+            var databaseName = config["Mongo:Database"] ?? "ChatStoreDB";
+            var mongoDatabase = mongoClient.GetDatabase(databaseName);
 
             // Ánh xạ 2 bảng theo models
             _phienCollection = mongoDatabase.GetCollection<PhienTroChuyen>("PhienTroChuyen");

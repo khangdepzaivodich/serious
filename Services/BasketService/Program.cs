@@ -14,10 +14,18 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("https://localhost:7119", "http://localhost:5270")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        var frontendUrl = builder.Configuration["FrontendUrl"];
+        if (!string.IsNullOrEmpty(frontendUrl))
+        {
+            policy.WithOrigins(frontendUrl)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
+        else
+        {
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        }
     });
 });
 builder.Services.AddControllers();
@@ -53,8 +61,7 @@ builder.Services.AddAuthorization();
 // Đọc trực tiếp từ env var để tránh .NET config parse sai ký tự đặc biệt (dấu phẩy, dấu =)
 var redisConnectionString = Environment.GetEnvironmentVariable("Redis__ConnectionString")
                             ?? builder.Configuration["Redis:ConnectionString"]
-                            ?? builder.Configuration.GetConnectionString("Redis") 
-                            ?? "localhost:6379,abortConnect=false";
+                            ?? builder.Configuration.GetConnectionString("Redis");
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
     ConnectionMultiplexer.Connect(redisConnectionString));
@@ -68,12 +75,12 @@ builder.Services.AddTransient<AuthenticationDelegatingHandler>();
 // Lấy Cấu hình hệ thống HTTP Client
 builder.Services.AddHttpClient<ICatalogService, CatalogApiService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:CatalogUrl"] ?? "http://localhost:5289");
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:CatalogUrl"]);
 });
 
 builder.Services.AddHttpClient<IIdentityService, IdentityApiService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:IdentityUrl"] ?? "http://localhost:5018");
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:IdentityUrl"]);
 }).AddHttpMessageHandler<AuthenticationDelegatingHandler>(); // Tự động chèn Bearer Token của User vào IdentityService
 
 var app = builder.Build();

@@ -15,10 +15,18 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("https://localhost:7119", "http://localhost:5270")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        var frontendUrl = builder.Configuration["FrontendUrl"];
+        if (!string.IsNullOrEmpty(frontendUrl))
+        {
+            policy.WithOrigins(frontendUrl)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
+        else
+        {
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        }
     });
 });
 builder.Services.AddControllers();
@@ -51,20 +59,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddHttpClient("CatalogService", client =>
 {
-    client.BaseAddress = new Uri("https://catalog-service:8080/"); // URL of Catalog API in Docker
-})
-.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-{
-    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:CatalogUrl"]);
 });
 
 builder.Services.AddHttpClient("DiscountService", client =>
 {
-    client.BaseAddress = new Uri("https://discount-service:8080/"); // URL of Discount API in Docker
-})
-.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-{
-    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:DiscountUrl"]);
 });
 
 // Register DbContext

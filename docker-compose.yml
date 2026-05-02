@@ -1,21 +1,5 @@
 services:
   # =========================
-  # SQL SERVER
-  # =========================
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sqlserver
-    environment:
-      SA_PASSWORD: ${SA_PASSWORD}
-      ACCEPT_EULA: "Y"
-    ports:
-      - "1433:1433"
-    volumes:
-      - sql_data:/var/opt/mssql
-    networks:
-      - backend
-
-  # =========================
   # MONGODB
   # =========================
   mongodb:
@@ -29,17 +13,6 @@ services:
       - backend
 
   # =========================
-  # REDIS
-  # =========================
-  redis:
-    image: redis:7
-    container_name: redis
-    ports:
-      - "6379:6379"
-    networks:
-      - backend
-
-  # =========================
   # IDENTITY SERVICE
   # =========================
   identity-service:
@@ -48,8 +21,6 @@ services:
     restart: always
     ports:
       - "7093:8080"
-    depends_on:
-      - sqlserver
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: ${IDENTITY_DB}
@@ -64,6 +35,7 @@ services:
       CloudinarySettings__CloudName: ${CLOUDINARY_CLOUD_NAME}
       CloudinarySettings__ApiKey: ${CLOUDINARY_API_KEY}
       CloudinarySettings__ApiSecret: ${CLOUDINARY_API_SECRET}
+      FrontendUrl: ${FRONTEND_URL}
     networks:
       - backend
 
@@ -76,8 +48,6 @@ services:
     restart: always
     ports:
       - "7103:8080"
-    depends_on:
-      - sqlserver
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: ${CATALOG_DB}
@@ -85,6 +55,7 @@ services:
       CloudinarySettings__ApiKey: ${CLOUDINARY_API_KEY}
       CloudinarySettings__ApiSecret: ${CLOUDINARY_API_SECRET}
       JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
+      FrontendUrl: ${FRONTEND_URL}
     networks:
       - backend
 
@@ -97,12 +68,13 @@ services:
     restart: always
     ports:
       - "7076:8080"
-    depends_on:
-      - sqlserver
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: ${ORDERING_DB}
       JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
+      ApiSettings__CatalogUrl: "http://catalog-service:8080"
+      ApiSettings__DiscountUrl: "http://discount-service:8080"
+      FrontendUrl: ${FRONTEND_URL}
     networks:
       - backend
 
@@ -115,14 +87,13 @@ services:
     restart: always
     ports:
       - "7021:8080"
-    depends_on:
-      - redis
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       Redis__ConnectionString: ${REDIS_CONNECTION}
       ApiSettings__CatalogUrl: "http://catalog-service:8080"
       ApiSettings__IdentityUrl: "http://identity-service:8080"
       JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
+      FrontendUrl: ${FRONTEND_URL}
     networks:
       - backend
 
@@ -139,9 +110,10 @@ services:
       - mongodb
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      Mongo__ConnectionString: ${MONGO_CONNECTION}
-      Mongo__Database: ${MONGO_DB_DISCOUNT}
+      DiscountDatabase__ConnectionString: ${MONGO_CONNECTION}
+      DiscountDatabase__DatabaseName: ${MONGO_DB_DISCOUNT}
       JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
+      FrontendUrl: ${FRONTEND_URL}
     networks:
       - backend
 
@@ -156,13 +128,13 @@ services:
       - "7229:8080"
     depends_on:
       - mongodb
-      - redis
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      Mongo__ConnectionString: ${MONGO_CONNECTION}
+      Mongo__ConnectionString: ${MONGO_CONNECTION_ATLAS}
       Mongo__Database: ${MONGO_DB_CHAT}
       Redis__ConnectionString: ${REDIS_CONNECTION}
       JwtSettings__RsaPublicKey: ${JWT_RSA_PUBLIC_KEY}
+      FrontendUrl: ${FRONTEND_URL}
     networks:
       - backend
 
@@ -176,5 +148,5 @@ networks:
 # VOLUMES
 # =========================
 volumes:
-  sql_data:
   mongo_data:
+

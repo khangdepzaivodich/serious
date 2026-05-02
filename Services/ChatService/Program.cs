@@ -20,18 +20,25 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("https://localhost:7119", "http://localhost:5270")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        var frontendUrl = builder.Configuration["FrontendUrl"];
+        if (!string.IsNullOrEmpty(frontendUrl))
+        {
+            policy.WithOrigins(frontendUrl)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
+        else
+        {
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        }
     });
 });
 builder.Services.AddControllers();
 
 // [TÍNH NĂNG MỚI] KÍCH HOẠT SignalR WebSockets! ---
 var redisConn = builder.Configuration["Redis:ConnectionString"] 
-                ?? builder.Configuration.GetConnectionString("Redis") 
-                ?? "redis:6379,abortConnect=false";
+                ?? builder.Configuration.GetConnectionString("Redis");
 
 builder.Services.AddSignalR().AddStackExchangeRedis(redisConn);
 
